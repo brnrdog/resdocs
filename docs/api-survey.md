@@ -6,13 +6,13 @@ Nothing below is from memory. Every claim cites a file.
 
 ## 1. Versions and toolchain
 
-| Package          | Version        | Note                                  |
-|------------------|----------------|---------------------------------------|
-| xote             | 7.2.0-beta.1   | npm spells it with a dot, pinned exact |
-| rescript-signals | 3.1.3          | xote's only runtime dependency        |
-| rescript         | 12.3.1         | required by xote (`^12.0.0`)          |
-| zekr             | 2.1.0          | test framework                        |
-| vite             | 8.3.0          |                                       |
+| Package          | Version      | Note                            |
+|------------------|--------------|---------------------------------|
+| xote             | 7.2.0-beta.1 | dot, not dash; pinned exact     |
+| rescript-signals | 3.1.3        | xote's only runtime dependency  |
+| rescript         | 12.3.1       | required by xote (`^12.0.0`)    |
+| zekr             | 2.1.0        | test framework                  |
+| vite             | 8.3.0        |                                 |
 
 The task said `7.2.0-beta-1`. The published version is `7.2.0-beta.1`
 (`npm view xote versions`). `package.json` pins it exactly.
@@ -54,13 +54,15 @@ Consumer configuration, mirrored in this repo's `rescript.json`:
 The PPX binary for linux-x64 is present at `node_modules/xote/ppx/ppx`
 (copied by `ppx/postinstall.js`), and a build with the flag succeeded.
 
-### 2.1 Signals (`src/Signal.resi`, `src/Computed.resi`, `src/Effect.resi`)
+### 2.1 Signals
+
+Files: `src/Signal.resi`, `src/Computed.resi`, `src/Effect.resi`.
 
 Thin re-export shims over rescript-signals. `Signal.t<'a>` is
 abstract.
 
     Signal.make: ('a, ~name=?, ~equals=?) => t<'a>
-    Signal.get / peek: t<'a> => 'a          get subscribes, peek does not
+    Signal.get / peek: t<'a> => 'a      get subscribes, peek does not
     Signal.set: (t<'a>, 'a) => unit
     Signal.update: (t<'a>, 'a => 'a) => unit
     Signal.batch: (unit => 'a) => 'a
@@ -118,9 +120,12 @@ Attribute helpers, all returning `(string, attrValue)`:
 
 JSX components (typed props, take `MaybeSignal.t`):
 
-    <View.For each={MaybeSignal.t<array<'item>>} by=? render={'item => node} />
+    <View.For each={MaybeSignal.t<array<'item>>} by=?
+              render={'item => node} />
     <View.KeyedFor ... by is required />
-    <View.Show when_={MaybeSignal.t<bool>} fallback=?> children </View.Show>
+    <View.Show when_={MaybeSignal.t<bool>} fallback=?>
+      children
+    </View.Show>
     <View.Maybe value={MaybeSignal.t<option<'v>>} render fallback=? />
     <View.Value value={MaybeSignal.t<'v>} render />
     <View.Text value=? > children </View.Text>   also Int, Float, Bool
@@ -228,8 +233,8 @@ types from the output and keep that file as a cross-check.
 ### 3.1 Top level
 
     {
-      "name": "View-Xote",           file module name, namespace suffixed
-      "docstrings": [...],           only from a /*** */ comment
+      "name": "View-Xote",       file module, namespace suffixed
+      "docstrings": [...],       only from /*** */ comments
       "deprecated": null | string,
       "source": {"filepath": "src/View.resi", "line": 1, "col": 1},
       "items": [...]
@@ -250,22 +255,24 @@ Every item has `id`, `kind`, `name`, `docstrings: array<string>`,
 
 `kind: "value"`:
 
-    "signature": "let element: (\n  string,\n  ~attrs: ...=?,\n ...) => node"
+    "signature": "let element: (\n  string,\n  ~attrs: ...) => node"
     "detail": {"kind": "signature", "details": {
        "parameters"?: [typeInSignature],    absent for non-functions
        "returnType": typeInSignature }}
 
 `kind: "type"`:
 
-    "signature": "type attrValue = Xote.RuntimeNode.attrValue =\n  | ..."
+    "signature": "type attrValue = Xote.RuntimeNode.attrValue = ..."
     "detail"?:
       {"kind": "record",  "items": [field]}
       {"kind": "variant", "items": [constructor]}
     (absent for abstract types and aliases such as `type t = string`)
 
-    field       = {name, optional: bool, docstrings, signature, deprecated?}
+    field       = {name, optional: bool, docstrings, signature,
+                   deprecated?}
     constructor = {name, docstrings, signature, deprecated?,
-                   payload?: {"kind": "inlineRecord", "fields": [field]}}
+                   payload?: {"kind": "inlineRecord",
+                              "fields": [field]}}
 
 An optional record field `count?: int` has `optional: true` and
 `signature: "option<int>"`.

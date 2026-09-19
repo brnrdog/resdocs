@@ -241,7 +241,9 @@ GitHub Pages the site is served from `/<repo>/`, passed as
 `Router.init(~basePath)` and Vite `base`. `404.html` is a copy of
 `index.html` so cold deep links resolve.
 
-Source links: `{repo.url}/blob/{repo.ref}/{repo.dir}{source.file}#L{line}`.
+Source links:
+
+    {repo.url}/blob/{repo.ref}/{repo.dir}{source.file}#L{line}
 
 ## 7. GitHub Action (`action.yml`)
 
