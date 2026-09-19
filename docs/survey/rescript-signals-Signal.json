@@ -1,0 +1,296 @@
+
+{
+  "name": "Signal-Signals",
+  "docstrings": [],
+  "source": {
+    "filepath": "src/signals/Signal.res",
+    "line": 1,
+    "col": 1
+  },
+  "items": [
+  {
+    "id": "Signal-Signals.t",
+    "kind": "type",
+    "name": "t",
+    "signature": "type t<'a> = Signals.Core.cell<'a> = {\n  id: int,\n  mutable value: 'a,\n  equals: ('a, 'a) => bool,\n  name: option<string>,\n  subs: Signals.Core.subs,\n}",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/signals/Signal.res",
+      "line": 3,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "record",
+      "items": [{
+        "name": "id",
+        "optional": false,
+        "docstrings": [],
+        "signature": "int"
+      }, {
+        "name": "value",
+        "optional": false,
+        "docstrings": [],
+        "signature": "'a"
+      }, {
+        "name": "equals",
+        "optional": false,
+        "docstrings": [],
+        "signature": "('a, 'a) => bool"
+      }, {
+        "name": "name",
+        "optional": false,
+        "docstrings": [],
+        "signature": "option<string>"
+      }, {
+        "name": "subs",
+        "optional": false,
+        "docstrings": [],
+        "signature": "Signals.Core.subs"
+      }]
+    }
+  }, 
+  {
+    "id": "Signal-Signals.defaultEquals",
+    "kind": "value",
+    "name": "defaultEquals",
+    "signature": "let defaultEquals: ('a, 'a) => bool",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/signals/Signal.res",
+      "line": 12,
+      "col": 5
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "returnType": {
+        "path": "bool"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "Signal-Signals.neverEquals",
+    "kind": "value",
+    "name": "neverEquals",
+    "signature": "let neverEquals: ('a, 'a) => bool",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/signals/Signal.res",
+      "line": 13,
+      "col": 5
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "returnType": {
+        "path": "bool"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "Signal-Signals.make",
+    "kind": "value",
+    "name": "make",
+    "signature": "let make: ('a, ~name: string=?, ~equals: ('a, 'a) => bool=?) => t<'a>",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/signals/Signal.res",
+      "line": 15,
+      "col": 5
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "option",
+          "genericTypeParameters": [{
+            "path": "string"
+          }]
+        }, {
+          "path": "option",
+          "genericTypeParameters": [{
+            "path": "bool"
+          }]
+        }],
+      "returnType": {
+        "path": "t"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "Signal-Signals.makeForComputed",
+    "kind": "value",
+    "name": "makeForComputed",
+    "signature": "let makeForComputed: ('a, ~name: string=?) => t<'a>",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/signals/Signal.res",
+      "line": 34,
+      "col": 5
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "option",
+          "genericTypeParameters": [{
+            "path": "string"
+          }]
+        }],
+      "returnType": {
+        "path": "t"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "Signal-Signals.get",
+    "kind": "value",
+    "name": "get",
+    "signature": "let get: t<'a> => 'a",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/signals/Signal.res",
+      "line": 46,
+      "col": 5
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "returnType": {
+        "path": "t"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "Signal-Signals.peek",
+    "kind": "value",
+    "name": "peek",
+    "signature": "let peek: t<'a> => 'a",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/signals/Signal.res",
+      "line": 56,
+      "col": 5
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "returnType": {
+        "path": "t"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "Signal-Signals.set",
+    "kind": "value",
+    "name": "set",
+    "signature": "let set: (t<'a>, 'a) => unit",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/signals/Signal.res",
+      "line": 61,
+      "col": 5
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "t"
+        }],
+      "returnType": {
+        "path": "unit"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "Signal-Signals.update",
+    "kind": "value",
+    "name": "update",
+    "signature": "let update: (t<'a>, 'a => 'a) => unit",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/signals/Signal.res",
+      "line": 76,
+      "col": 5
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "t"
+        }],
+      "returnType": {
+        "path": "unit"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "Signal-Signals.batch",
+    "kind": "value",
+    "name": "batch",
+    "signature": "let batch: (unit => 'a) => 'a",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/signals/Signal.res",
+      "line": 78,
+      "col": 5
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "unit"
+        }, {
+          "path": "_"
+        }],
+      "returnType": {
+        "path": "_"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "Signal-Signals.untrack",
+    "kind": "value",
+    "name": "untrack",
+    "signature": "let untrack: (unit => 'a) => 'a",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/signals/Signal.res",
+      "line": 80,
+      "col": 5
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "unit"
+        }, {
+          "path": "_"
+        }],
+      "returnType": {
+        "path": "_"
+      }
+    }
+    }
+  }]
+}

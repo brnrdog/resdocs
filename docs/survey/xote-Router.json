@@ -1,0 +1,556 @@
+
+{
+  "name": "Router-Xote",
+  "docstrings": [],
+  "source": {
+    "filepath": "src/Router.resi",
+    "line": 1,
+    "col": 1
+  },
+  "items": [
+  {
+    "id": "Router-Xote.location",
+    "kind": "type",
+    "name": "location",
+    "signature": "type location = {\n  pathname: string,\n  search: string,\n  hash: string,\n}",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/Router.resi",
+      "line": 7,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "record",
+      "items": [{
+        "name": "pathname",
+        "optional": false,
+        "docstrings": [],
+        "signature": "string"
+      }, {
+        "name": "search",
+        "optional": false,
+        "docstrings": [],
+        "signature": "string"
+      }, {
+        "name": "hash",
+        "optional": false,
+        "docstrings": [],
+        "signature": "string"
+      }]
+    }
+  }, 
+  {
+    "id": "Router-Xote.location",
+    "kind": "value",
+    "name": "location",
+    "signature": "let location: unit => Xote.Signal.t<location>",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/Router.resi",
+      "line": 14,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "unit"
+        }],
+      "returnType": {
+        "path": "Xote.Signal.t",
+        "genericTypeParameters": [{
+          "path": "location"
+        }]
+      }
+    }
+    }
+  }, 
+  {
+    "id": "Router-Xote.init",
+    "kind": "value",
+    "name": "init",
+    "signature": "let init: (~basePath: string=?, unit) => unit",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/Router.resi",
+      "line": 17,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "option",
+          "genericTypeParameters": [{
+            "path": "string"
+          }]
+        }, {
+          "path": "unit"
+        }],
+      "returnType": {
+        "path": "unit"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "Router-Xote.initSSR",
+    "kind": "value",
+    "name": "initSSR",
+    "signature": "let initSSR: (\n  ~basePath: string=?,\n  ~pathname: string=?,\n  ~search: string=?,\n  ~hash: string=?,\n  unit,\n) => unit",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/Router.resi",
+      "line": 20,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "option",
+          "genericTypeParameters": [{
+            "path": "string"
+          }]
+        }, {
+          "path": "option",
+          "genericTypeParameters": [{
+            "path": "string"
+          }]
+        }, {
+          "path": "option",
+          "genericTypeParameters": [{
+            "path": "string"
+          }]
+        }, {
+          "path": "option",
+          "genericTypeParameters": [{
+            "path": "string"
+          }]
+        }, {
+          "path": "unit"
+        }],
+      "returnType": {
+        "path": "unit"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "Router-Xote.push",
+    "kind": "value",
+    "name": "push",
+    "signature": "let push: (string, ~search: string=?, ~hash: string=?, unit) => unit",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/Router.resi",
+      "line": 29,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "string"
+        }, {
+          "path": "option",
+          "genericTypeParameters": [{
+            "path": "string"
+          }]
+        }, {
+          "path": "option",
+          "genericTypeParameters": [{
+            "path": "string"
+          }]
+        }, {
+          "path": "unit"
+        }],
+      "returnType": {
+        "path": "unit"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "Router-Xote.replace",
+    "kind": "value",
+    "name": "replace",
+    "signature": "let replace: (string, ~search: string=?, ~hash: string=?, unit) => unit",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/Router.resi",
+      "line": 32,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "string"
+        }, {
+          "path": "option",
+          "genericTypeParameters": [{
+            "path": "string"
+          }]
+        }, {
+          "path": "option",
+          "genericTypeParameters": [{
+            "path": "string"
+          }]
+        }, {
+          "path": "unit"
+        }],
+      "returnType": {
+        "path": "unit"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "Router-Xote.routeConfig",
+    "kind": "type",
+    "name": "routeConfig",
+    "signature": "type routeConfig = {\n  pattern: string,\n  render: Xote.Route.params => Xote.View.node,\n}",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/Router.resi",
+      "line": 34,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "record",
+      "items": [{
+        "name": "pattern",
+        "optional": false,
+        "docstrings": [],
+        "signature": "string"
+      }, {
+        "name": "render",
+        "optional": false,
+        "docstrings": [],
+        "signature": "Xote.Route.params => Xote.View.node"
+      }]
+    }
+  }, 
+  {
+    "id": "Router-Xote.route",
+    "kind": "value",
+    "name": "route",
+    "signature": "let route: (\n  string,\n  Xote.Route.params => Xote.View.node,\n) => Xote.View.node",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/Router.resi",
+      "line": 40,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "string"
+        }, {
+          "path": "Xote.Route.params"
+        }, {
+          "path": "Xote.View.node"
+        }],
+      "returnType": {
+        "path": "Xote.View.node"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "Router-Xote.routes",
+    "kind": "value",
+    "name": "routes",
+    "signature": "let routes: array<routeConfig> => Xote.View.node",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/Router.resi",
+      "line": 43,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "array",
+          "genericTypeParameters": [{
+            "path": "routeConfig"
+          }]
+        }],
+      "returnType": {
+        "path": "Xote.View.node"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "Router-Xote.link",
+    "kind": "value",
+    "name": "link",
+    "signature": "let link: (\n  ~to: string,\n  ~attrs: array<(string, Xote.View.attrValue)>=?,\n  ~children: array<Xote.View.node>=?,\n  unit,\n) => Xote.View.node",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/Router.resi",
+      "line": 46,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "string"
+        }, {
+          "path": "option",
+          "genericTypeParameters": [{
+            "path": "array"
+          }]
+        }, {
+          "path": "option",
+          "genericTypeParameters": [{
+            "path": "array",
+            "genericTypeParameters": [{
+              "path": "Xote.View.node"
+            }]
+          }]
+        }, {
+          "path": "unit"
+        }],
+      "returnType": {
+        "path": "Xote.View.node"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "Router-Xote.Link",
+    "name": "Link",
+    "kind": "module",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/Router.resi",
+      "line": 54,
+      "col": 8
+    },
+    "items": [
+    {
+      "id": "Router-Xote.Prop",
+      "kind": "moduleAlias",
+      "name": "Prop",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/Router.resi",
+        "line": 57,
+        "col": 10
+      },
+      "items": []
+    }, 
+    {
+      "id": "Router-Xote.Link.props",
+      "kind": "type",
+      "name": "props",
+      "signature": "type props<\n  'class,\n  'id,\n  'style,\n  'target,\n  'ariaLabel,\n  'attrs,\n> = {\n  to: string,\n  class?: 'class,\n  id?: 'id,\n  style?: 'style,\n  target?: 'target,\n  ariaLabel?: 'ariaLabel,\n  attrs?: array<(string, 'attrs)>,\n  onClick?: Dom.event => unit,\n  children?: Xote.View.node,\n}",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/Router.resi",
+        "line": 59,
+        "col": 3
+      },
+      "detail": 
+      {
+        "kind": "record",
+        "items": [{
+          "name": "to",
+          "optional": false,
+          "docstrings": [],
+          "signature": "string"
+        }, {
+          "name": "class",
+          "optional": true,
+          "docstrings": [],
+          "signature": "option<'class>"
+        }, {
+          "name": "id",
+          "optional": true,
+          "docstrings": [],
+          "signature": "option<'id>"
+        }, {
+          "name": "style",
+          "optional": true,
+          "docstrings": [],
+          "signature": "option<'style>"
+        }, {
+          "name": "target",
+          "optional": true,
+          "docstrings": [],
+          "signature": "option<'target>"
+        }, {
+          "name": "ariaLabel",
+          "optional": true,
+          "docstrings": [],
+          "signature": "option<'ariaLabel>"
+        }, {
+          "name": "attrs",
+          "optional": true,
+          "docstrings": [],
+          "signature": "option<array<(string, 'attrs)>>"
+        }, {
+          "name": "onClick",
+          "optional": true,
+          "docstrings": [],
+          "signature": "option<Dom.event => unit>"
+        }, {
+          "name": "children",
+          "optional": true,
+          "docstrings": [],
+          "signature": "option<Xote.View.node>"
+        }]
+      }
+    }, 
+    {
+      "id": "Router-Xote.Link.make",
+      "kind": "value",
+      "name": "make",
+      "signature": "let make: props<\n  'class,\n  'id,\n  'style,\n  'target,\n  'ariaLabel,\n  'attrs,\n> => Xote.View.node",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/Router.resi",
+        "line": 72,
+        "col": 3
+      },
+      "detail": 
+      {
+        "kind": "signature",
+        "details": {
+        "parameters": [{
+            "path": "props"
+          }],
+        "returnType": {
+          "path": "Xote.View.node"
+        }
+      }
+      }
+    }, 
+    {
+      "id": "Router-Xote.Link.jsx",
+      "kind": "value",
+      "name": "jsx",
+      "signature": "let jsx: props<\n  'class,\n  'id,\n  'style,\n  'target,\n  'ariaLabel,\n  'attrs,\n> => Xote.View.node",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/Router.resi",
+        "line": 74,
+        "col": 3
+      },
+      "detail": 
+      {
+        "kind": "signature",
+        "details": {
+        "parameters": [{
+            "path": "props"
+          }],
+        "returnType": {
+          "path": "Xote.View.node"
+        }
+      }
+      }
+    }, 
+    {
+      "id": "Router-Xote.Link.jsxs",
+      "kind": "value",
+      "name": "jsxs",
+      "signature": "let jsxs: props<\n  'class,\n  'id,\n  'style,\n  'target,\n  'ariaLabel,\n  'attrs,\n> => Xote.View.node",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/Router.resi",
+        "line": 75,
+        "col": 3
+      },
+      "detail": 
+      {
+        "kind": "signature",
+        "details": {
+        "parameters": [{
+            "path": "props"
+          }],
+        "returnType": {
+          "path": "Xote.View.node"
+        }
+      }
+      }
+    }, 
+    {
+      "id": "Router-Xote.Link.jsxKeyed",
+      "kind": "value",
+      "name": "jsxKeyed",
+      "signature": "let jsxKeyed: (\n  props<'class, 'id, 'style, 'target, 'ariaLabel, 'attrs>,\n  ~key: string=?,\n  unit,\n) => Xote.View.node",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/Router.resi",
+        "line": 76,
+        "col": 3
+      },
+      "detail": 
+      {
+        "kind": "signature",
+        "details": {
+        "parameters": [{
+            "path": "props"
+          }, {
+            "path": "option",
+            "genericTypeParameters": [{
+              "path": "string"
+            }]
+          }, {
+            "path": "unit"
+          }],
+        "returnType": {
+          "path": "Xote.View.node"
+        }
+      }
+      }
+    }, 
+    {
+      "id": "Router-Xote.Link.jsxsKeyed",
+      "kind": "value",
+      "name": "jsxsKeyed",
+      "signature": "let jsxsKeyed: (\n  props<'class, 'id, 'style, 'target, 'ariaLabel, 'attrs>,\n  ~key: string=?,\n  unit,\n) => Xote.View.node",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/Router.resi",
+        "line": 81,
+        "col": 3
+      },
+      "detail": 
+      {
+        "kind": "signature",
+        "details": {
+        "parameters": [{
+            "path": "props"
+          }, {
+            "path": "option",
+            "genericTypeParameters": [{
+              "path": "string"
+            }]
+          }, {
+            "path": "unit"
+          }],
+        "returnType": {
+          "path": "Xote.View.node"
+        }
+      }
+      }
+    }]
+  }]
+}
