@@ -1,0 +1,1656 @@
+
+{
+  "name": "View-Xote",
+  "docstrings": [],
+  "source": {
+    "filepath": "src/View.resi",
+    "line": 1,
+    "col": 1
+  },
+  "items": [
+  {
+    "id": "View-Xote.attrValue",
+    "kind": "type",
+    "name": "attrValue",
+    "signature": "type attrValue = Xote.RuntimeNode.attrValue =\n  | Static(string)\n  | SignalValue(Xote.Signal.t<string>)\n  | Compute(unit => string)\n  | OptionalStatic(option<string>)\n  | OptionalSignalValue(Xote.Signal.t<option<string>>)\n  | OptionalCompute(unit => option<string>)",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 17,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "variant",
+      "items": [
+      {
+        "name": "Static",
+        "docstrings": [],
+        "signature": "Static(string)"
+      }, 
+      {
+        "name": "SignalValue",
+        "docstrings": [],
+        "signature": "SignalValue(Xote.Signal.t<string>)"
+      }, 
+      {
+        "name": "Compute",
+        "docstrings": [],
+        "signature": "Compute(unit => string)"
+      }, 
+      {
+        "name": "OptionalStatic",
+        "docstrings": [],
+        "signature": "OptionalStatic(option<string>)"
+      }, 
+      {
+        "name": "OptionalSignalValue",
+        "docstrings": [],
+        "signature": "OptionalSignalValue(Xote.Signal.t<option<string>>)"
+      }, 
+      {
+        "name": "OptionalCompute",
+        "docstrings": [],
+        "signature": "OptionalCompute(unit => option<string>)"
+      }]
+    }
+  }, 
+  {
+    "id": "View-Xote.node",
+    "kind": "type",
+    "name": "node",
+    "signature": "type node = Xote.RuntimeNode.node =\n  | Element({\n      tag: string,\n      attrs: array<(string, attrValue)>,\n      events: array<(string, Dom.event => unit)>,\n      children: array<node>,\n    })\n  | Text(string)\n  | SignalText(Xote.Signal.t<string>)\n  | Fragment(array<node>)\n  | SignalFragment(Xote.Signal.t<array<node>>)\n  | Keyed({key: string, identity: Obj.t, child: node})\n  | LazyComponent(unit => node)\n  | KeyedList({\n      signal: Xote.Signal.t<array<Obj.t>>,\n      keyFn: Obj.t => string,\n      renderItem: Obj.t => node,\n    })",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 26,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "variant",
+      "items": [
+      {
+        "name": "Element",
+        "docstrings": [],
+        "signature": "Element({tag: string, attrs: array<(string, attrValue)>, events: array<(string, Dom.event => unit)>, children: array<node>})",
+        "payload": {
+          "kind": "inlineRecord",
+          "fields": [{
+            "name": "tag",
+            "optional": false,
+            "docstrings": [],
+            "signature": "string"
+          }, {
+            "name": "attrs",
+            "optional": false,
+            "docstrings": [],
+            "signature": "array<(string, attrValue)>"
+          }, {
+            "name": "events",
+            "optional": false,
+            "docstrings": [],
+            "signature": "array<(string, Dom.event => unit)>"
+          }, {
+            "name": "children",
+            "optional": false,
+            "docstrings": [],
+            "signature": "array<node>"
+          }]
+        }
+      }, 
+      {
+        "name": "Text",
+        "docstrings": [],
+        "signature": "Text(string)"
+      }, 
+      {
+        "name": "SignalText",
+        "docstrings": [],
+        "signature": "SignalText(Xote.Signal.t<string>)"
+      }, 
+      {
+        "name": "Fragment",
+        "docstrings": [],
+        "signature": "Fragment(array<node>)"
+      }, 
+      {
+        "name": "SignalFragment",
+        "docstrings": [],
+        "signature": "SignalFragment(Xote.Signal.t<array<node>>)"
+      }, 
+      {
+        "name": "Keyed",
+        "docstrings": [],
+        "signature": "Keyed({key: string, identity: Obj.t, child: node})",
+        "payload": {
+          "kind": "inlineRecord",
+          "fields": [{
+            "name": "key",
+            "optional": false,
+            "docstrings": [],
+            "signature": "string"
+          }, {
+            "name": "identity",
+            "optional": false,
+            "docstrings": [],
+            "signature": "Obj.t"
+          }, {
+            "name": "child",
+            "optional": false,
+            "docstrings": [],
+            "signature": "node"
+          }]
+        }
+      }, 
+      {
+        "name": "LazyComponent",
+        "docstrings": [],
+        "signature": "LazyComponent(unit => node)"
+      }, 
+      {
+        "name": "KeyedList",
+        "docstrings": [],
+        "signature": "KeyedList({signal: Xote.Signal.t<array<Obj.t>>, keyFn: Obj.t => string, renderItem: Obj.t => node})",
+        "payload": {
+          "kind": "inlineRecord",
+          "fields": [{
+            "name": "signal",
+            "optional": false,
+            "docstrings": [],
+            "signature": "Xote.Signal.t<array<Obj.t>>"
+          }, {
+            "name": "keyFn",
+            "optional": false,
+            "docstrings": [],
+            "signature": "Obj.t => string"
+          }, {
+            "name": "renderItem",
+            "optional": false,
+            "docstrings": [],
+            "signature": "Obj.t => node"
+          }]
+        }
+      }]
+    }
+  }, 
+  {
+    "id": "View-Xote.attr",
+    "kind": "value",
+    "name": "attr",
+    "signature": "let attr: (string, string) => (string, attrValue)",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 46,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "string"
+        }],
+      "returnType": {
+        "path": "string"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "View-Xote.signalAttr",
+    "kind": "value",
+    "name": "signalAttr",
+    "signature": "let signalAttr: (string, Xote.Signal.t<string>) => (string, attrValue)",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 49,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "string"
+        }],
+      "returnType": {
+        "path": "Xote.Signal.t",
+        "genericTypeParameters": [{
+          "path": "string"
+        }]
+      }
+    }
+    }
+  }, 
+  {
+    "id": "View-Xote.computedAttr",
+    "kind": "value",
+    "name": "computedAttr",
+    "signature": "let computedAttr: (string, unit => string) => (string, attrValue)",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 52,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "string"
+        }, {
+          "path": "unit"
+        }],
+      "returnType": {
+        "path": "string"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "View-Xote.optionalAttr",
+    "kind": "value",
+    "name": "optionalAttr",
+    "signature": "let optionalAttr: (string, option<string>) => (string, attrValue)",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 55,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "string"
+        }],
+      "returnType": {
+        "path": "option",
+        "genericTypeParameters": [{
+          "path": "string"
+        }]
+      }
+    }
+    }
+  }, 
+  {
+    "id": "View-Xote.optionalSignalAttr",
+    "kind": "value",
+    "name": "optionalSignalAttr",
+    "signature": "let optionalSignalAttr: (\n  string,\n  Xote.Signal.t<option<string>>,\n) => (string, attrValue)",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 56,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "string"
+        }],
+      "returnType": {
+        "path": "Xote.Signal.t",
+        "genericTypeParameters": [{
+          "path": "option",
+          "genericTypeParameters": [{
+            "path": "string"
+          }]
+        }]
+      }
+    }
+    }
+  }, 
+  {
+    "id": "View-Xote.optionalComputedAttr",
+    "kind": "value",
+    "name": "optionalComputedAttr",
+    "signature": "let optionalComputedAttr: (string, unit => option<string>) => (string, attrValue)",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 57,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "string"
+        }, {
+          "path": "unit"
+        }],
+      "returnType": {
+        "path": "option",
+        "genericTypeParameters": [{
+          "path": "string"
+        }]
+      }
+    }
+    }
+  }, 
+  {
+    "id": "View-Xote.Attr",
+    "name": "Attr",
+    "kind": "module",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 59,
+      "col": 8
+    },
+    "items": [
+    {
+      "id": "View-Xote.Attr.string",
+      "kind": "value",
+      "name": "string",
+      "signature": "let string: (string, string) => (string, attrValue)",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/View.resi",
+        "line": 60,
+        "col": 3
+      },
+      "detail": 
+      {
+        "kind": "signature",
+        "details": {
+        "parameters": [{
+            "path": "string"
+          }],
+        "returnType": {
+          "path": "string"
+        }
+      }
+      }
+    }, 
+    {
+      "id": "View-Xote.Attr.signal",
+      "kind": "value",
+      "name": "signal",
+      "signature": "let signal: (string, Xote.Signal.t<string>) => (string, attrValue)",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/View.resi",
+        "line": 61,
+        "col": 3
+      },
+      "detail": 
+      {
+        "kind": "signature",
+        "details": {
+        "parameters": [{
+            "path": "string"
+          }],
+        "returnType": {
+          "path": "Xote.Signal.t",
+          "genericTypeParameters": [{
+            "path": "string"
+          }]
+        }
+      }
+      }
+    }, 
+    {
+      "id": "View-Xote.Attr.compute",
+      "kind": "value",
+      "name": "compute",
+      "signature": "let compute: (string, unit => string) => (string, attrValue)",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/View.resi",
+        "line": 62,
+        "col": 3
+      },
+      "detail": 
+      {
+        "kind": "signature",
+        "details": {
+        "parameters": [{
+            "path": "string"
+          }, {
+            "path": "unit"
+          }],
+        "returnType": {
+          "path": "string"
+        }
+      }
+      }
+    }, 
+    {
+      "id": "View-Xote.Attr.optional",
+      "kind": "value",
+      "name": "optional",
+      "signature": "let optional: (string, option<string>) => (string, attrValue)",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/View.resi",
+        "line": 63,
+        "col": 3
+      },
+      "detail": 
+      {
+        "kind": "signature",
+        "details": {
+        "parameters": [{
+            "path": "string"
+          }],
+        "returnType": {
+          "path": "option",
+          "genericTypeParameters": [{
+            "path": "string"
+          }]
+        }
+      }
+      }
+    }, 
+    {
+      "id": "View-Xote.Attr.optionalSignal",
+      "kind": "value",
+      "name": "optionalSignal",
+      "signature": "let optionalSignal: (\n  string,\n  Xote.Signal.t<option<string>>,\n) => (string, attrValue)",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/View.resi",
+        "line": 64,
+        "col": 3
+      },
+      "detail": 
+      {
+        "kind": "signature",
+        "details": {
+        "parameters": [{
+            "path": "string"
+          }],
+        "returnType": {
+          "path": "Xote.Signal.t",
+          "genericTypeParameters": [{
+            "path": "option",
+            "genericTypeParameters": [{
+              "path": "string"
+            }]
+          }]
+        }
+      }
+      }
+    }, 
+    {
+      "id": "View-Xote.Attr.optionalCompute",
+      "kind": "value",
+      "name": "optionalCompute",
+      "signature": "let optionalCompute: (string, unit => option<string>) => (string, attrValue)",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/View.resi",
+        "line": 65,
+        "col": 3
+      },
+      "detail": 
+      {
+        "kind": "signature",
+        "details": {
+        "parameters": [{
+            "path": "string"
+          }, {
+            "path": "unit"
+          }],
+        "returnType": {
+          "path": "option",
+          "genericTypeParameters": [{
+            "path": "string"
+          }]
+        }
+      }
+      }
+    }]
+  }, 
+  {
+    "id": "View-Xote.text",
+    "kind": "value",
+    "name": "text",
+    "signature": "let text: string => node",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 72,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "string"
+        }],
+      "returnType": {
+        "path": "node"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "View-Xote.signalText",
+    "kind": "value",
+    "name": "signalText",
+    "signature": "let signalText: (unit => string) => node",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 73,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "unit"
+        }, {
+          "path": "string"
+        }],
+      "returnType": {
+        "path": "node"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "View-Xote.signalInt",
+    "kind": "value",
+    "name": "signalInt",
+    "signature": "let signalInt: (unit => int) => node",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 74,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "unit"
+        }, {
+          "path": "int"
+        }],
+      "returnType": {
+        "path": "node"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "View-Xote.signalFloat",
+    "kind": "value",
+    "name": "signalFloat",
+    "signature": "let signalFloat: (unit => float) => node",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 75,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "unit"
+        }, {
+          "path": "float"
+        }],
+      "returnType": {
+        "path": "node"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "View-Xote.int",
+    "kind": "value",
+    "name": "int",
+    "signature": "let int: int => node",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 76,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "int"
+        }],
+      "returnType": {
+        "path": "node"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "View-Xote.float",
+    "kind": "value",
+    "name": "float",
+    "signature": "let float: float => node",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 77,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "float"
+        }],
+      "returnType": {
+        "path": "node"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "View-Xote.bool",
+    "kind": "value",
+    "name": "bool",
+    "signature": "let bool: bool => node",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 78,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "bool"
+        }],
+      "returnType": {
+        "path": "node"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "View-Xote.fragment",
+    "kind": "value",
+    "name": "fragment",
+    "signature": "let fragment: array<node> => node",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 79,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "array",
+          "genericTypeParameters": [{
+            "path": "node"
+          }]
+        }],
+      "returnType": {
+        "path": "node"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "View-Xote.signalFragment",
+    "kind": "value",
+    "name": "signalFragment",
+    "signature": "let signalFragment: Xote.Signal.t<array<node>> => node",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 80,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "Xote.Signal.t",
+          "genericTypeParameters": [{
+            "path": "array",
+            "genericTypeParameters": [{
+              "path": "node"
+            }]
+          }]
+        }],
+      "returnType": {
+        "path": "node"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "View-Xote.tracked",
+    "kind": "value",
+    "name": "tracked",
+    "signature": "let tracked: (unit => node) => node",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 86,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "unit"
+        }, {
+          "path": "node"
+        }],
+      "returnType": {
+        "path": "node"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "View-Xote.each",
+    "kind": "value",
+    "name": "each",
+    "signature": "let each: (Xote.Signal.t<array<'a>>, 'a => node) => node",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 89,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "Xote.Signal.t",
+          "genericTypeParameters": [{
+            "path": "array"
+          }]
+        }, {
+          "path": "node"
+        }],
+      "returnType": {
+        "path": "node"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "View-Xote.eachWithKey",
+    "kind": "value",
+    "name": "eachWithKey",
+    "signature": "let eachWithKey: (Xote.Signal.t<array<'a>>, 'a => string, 'a => node) => node",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 92,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "Xote.Signal.t",
+          "genericTypeParameters": [{
+            "path": "array"
+          }]
+        }, {
+          "path": "string"
+        }, {
+          "path": "node"
+        }],
+      "returnType": {
+        "path": "node"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "View-Xote.render",
+    "kind": "value",
+    "name": "render",
+    "signature": "let render: (Xote.MaybeSignal.t<'a>, 'a => node) => node",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 100,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "Xote.MaybeSignal.t"
+        }, {
+          "path": "node"
+        }],
+      "returnType": {
+        "path": "node"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "View-Xote.element",
+    "kind": "value",
+    "name": "element",
+    "signature": "let element: (\n  string,\n  ~attrs: array<(string, attrValue)>=?,\n  ~events: array<(string, Dom.event => unit)>=?,\n  ~children: array<node>=?,\n  unit,\n) => node",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 102,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "string"
+        }, {
+          "path": "option",
+          "genericTypeParameters": [{
+            "path": "array"
+          }]
+        }, {
+          "path": "option",
+          "genericTypeParameters": [{
+            "path": "array"
+          }]
+        }, {
+          "path": "option",
+          "genericTypeParameters": [{
+            "path": "array",
+            "genericTypeParameters": [{
+              "path": "node"
+            }]
+          }]
+        }, {
+          "path": "unit"
+        }],
+      "returnType": {
+        "path": "node"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "View-Xote.null",
+    "kind": "value",
+    "name": "null",
+    "signature": "let null: unit => node",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 111,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "unit"
+        }],
+      "returnType": {
+        "path": "node"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "View-Xote.empty",
+    "kind": "value",
+    "name": "empty",
+    "signature": "let empty: unit => node",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 112,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "unit"
+        }],
+      "returnType": {
+        "path": "node"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "View-Xote.For",
+    "name": "For",
+    "kind": "module",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 118,
+      "col": 8
+    },
+    "items": [
+    {
+      "id": "View-Xote.For.props",
+      "kind": "type",
+      "name": "props",
+      "signature": "type props<'item> = {\n  each: Xote.MaybeSignal.t<array<'item>>,\n  by?: 'item => string,\n  render: 'item => node,\n}",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/View.resi",
+        "line": 119,
+        "col": 3
+      },
+      "detail": 
+      {
+        "kind": "record",
+        "items": [{
+          "name": "each",
+          "optional": false,
+          "docstrings": [],
+          "signature": "Xote.MaybeSignal.t<array<'item>>"
+        }, {
+          "name": "by",
+          "optional": true,
+          "docstrings": [],
+          "signature": "option<'item => string>"
+        }, {
+          "name": "render",
+          "optional": false,
+          "docstrings": [],
+          "signature": "'item => node"
+        }]
+      }
+    }, 
+    {
+      "id": "View-Xote.For.make",
+      "kind": "value",
+      "name": "make",
+      "signature": "let make: props<'item> => node",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/View.resi",
+        "line": 125,
+        "col": 3
+      },
+      "detail": 
+      {
+        "kind": "signature",
+        "details": {
+        "parameters": [{
+            "path": "props"
+          }],
+        "returnType": {
+          "path": "node"
+        }
+      }
+      }
+    }]
+  }, 
+  {
+    "id": "View-Xote.KeyedFor",
+    "name": "KeyedFor",
+    "kind": "module",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 128,
+      "col": 8
+    },
+    "items": [
+    {
+      "id": "View-Xote.KeyedFor.props",
+      "kind": "type",
+      "name": "props",
+      "signature": "type props<'item> = {\n  each: Xote.MaybeSignal.t<array<'item>>,\n  by: 'item => string,\n  render: 'item => node,\n}",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/View.resi",
+        "line": 129,
+        "col": 3
+      },
+      "detail": 
+      {
+        "kind": "record",
+        "items": [{
+          "name": "each",
+          "optional": false,
+          "docstrings": [],
+          "signature": "Xote.MaybeSignal.t<array<'item>>"
+        }, {
+          "name": "by",
+          "optional": false,
+          "docstrings": [],
+          "signature": "'item => string"
+        }, {
+          "name": "render",
+          "optional": false,
+          "docstrings": [],
+          "signature": "'item => node"
+        }]
+      }
+    }, 
+    {
+      "id": "View-Xote.KeyedFor.make",
+      "kind": "value",
+      "name": "make",
+      "signature": "let make: props<'item> => node",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/View.resi",
+        "line": 135,
+        "col": 3
+      },
+      "detail": 
+      {
+        "kind": "signature",
+        "details": {
+        "parameters": [{
+            "path": "props"
+          }],
+        "returnType": {
+          "path": "node"
+        }
+      }
+      }
+    }]
+  }, 
+  {
+    "id": "View-Xote.Show",
+    "name": "Show",
+    "kind": "module",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 138,
+      "col": 8
+    },
+    "items": [
+    {
+      "id": "View-Xote.Show.props",
+      "kind": "type",
+      "name": "props",
+      "signature": "type props = {\n  when_: Xote.MaybeSignal.t<bool>,\n  children?: node,\n  fallback?: node,\n}",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/View.resi",
+        "line": 139,
+        "col": 3
+      },
+      "detail": 
+      {
+        "kind": "record",
+        "items": [{
+          "name": "when_",
+          "optional": false,
+          "docstrings": [],
+          "signature": "Xote.MaybeSignal.t<bool>"
+        }, {
+          "name": "children",
+          "optional": true,
+          "docstrings": [],
+          "signature": "option<node>"
+        }, {
+          "name": "fallback",
+          "optional": true,
+          "docstrings": [],
+          "signature": "option<node>"
+        }]
+      }
+    }, 
+    {
+      "id": "View-Xote.Show.make",
+      "kind": "value",
+      "name": "make",
+      "signature": "let make: props => node",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/View.resi",
+        "line": 145,
+        "col": 3
+      },
+      "detail": 
+      {
+        "kind": "signature",
+        "details": {
+        "parameters": [{
+            "path": "props"
+          }],
+        "returnType": {
+          "path": "node"
+        }
+      }
+      }
+    }]
+  }, 
+  {
+    "id": "View-Xote.Maybe",
+    "name": "Maybe",
+    "kind": "module",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 148,
+      "col": 8
+    },
+    "items": [
+    {
+      "id": "View-Xote.Maybe.props",
+      "kind": "type",
+      "name": "props",
+      "signature": "type props<'value> = {\n  value: Xote.MaybeSignal.t<option<'value>>,\n  render: 'value => node,\n  fallback?: node,\n}",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/View.resi",
+        "line": 149,
+        "col": 3
+      },
+      "detail": 
+      {
+        "kind": "record",
+        "items": [{
+          "name": "value",
+          "optional": false,
+          "docstrings": [],
+          "signature": "Xote.MaybeSignal.t<option<'value>>"
+        }, {
+          "name": "render",
+          "optional": false,
+          "docstrings": [],
+          "signature": "'value => node"
+        }, {
+          "name": "fallback",
+          "optional": true,
+          "docstrings": [],
+          "signature": "option<node>"
+        }]
+      }
+    }, 
+    {
+      "id": "View-Xote.Maybe.make",
+      "kind": "value",
+      "name": "make",
+      "signature": "let make: props<'value> => node",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/View.resi",
+        "line": 155,
+        "col": 3
+      },
+      "detail": 
+      {
+        "kind": "signature",
+        "details": {
+        "parameters": [{
+            "path": "props"
+          }],
+        "returnType": {
+          "path": "node"
+        }
+      }
+      }
+    }]
+  }, 
+  {
+    "id": "View-Xote.Value",
+    "name": "Value",
+    "kind": "module",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 158,
+      "col": 8
+    },
+    "items": [
+    {
+      "id": "View-Xote.Value.props",
+      "kind": "type",
+      "name": "props",
+      "signature": "type props<'value> = {\n  value: Xote.MaybeSignal.t<'value>,\n  render: 'value => node,\n}",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/View.resi",
+        "line": 159,
+        "col": 3
+      },
+      "detail": 
+      {
+        "kind": "record",
+        "items": [{
+          "name": "value",
+          "optional": false,
+          "docstrings": [],
+          "signature": "Xote.MaybeSignal.t<'value>"
+        }, {
+          "name": "render",
+          "optional": false,
+          "docstrings": [],
+          "signature": "'value => node"
+        }]
+      }
+    }, 
+    {
+      "id": "View-Xote.Value.make",
+      "kind": "value",
+      "name": "make",
+      "signature": "let make: props<'value> => node",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/View.resi",
+        "line": 164,
+        "col": 3
+      },
+      "detail": 
+      {
+        "kind": "signature",
+        "details": {
+        "parameters": [{
+            "path": "props"
+          }],
+        "returnType": {
+          "path": "node"
+        }
+      }
+      }
+    }]
+  }, 
+  {
+    "id": "View-Xote.Text",
+    "name": "Text",
+    "kind": "module",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 167,
+      "col": 8
+    },
+    "items": [
+    {
+      "id": "View-Xote.Text.props",
+      "kind": "type",
+      "name": "props",
+      "signature": "type props<'value, 'children> = {\n  value?: 'value,\n  children?: 'children,\n}",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/View.resi",
+        "line": 168,
+        "col": 3
+      },
+      "detail": 
+      {
+        "kind": "record",
+        "items": [{
+          "name": "value",
+          "optional": true,
+          "docstrings": [],
+          "signature": "option<'value>"
+        }, {
+          "name": "children",
+          "optional": true,
+          "docstrings": [],
+          "signature": "option<'children>"
+        }]
+      }
+    }, 
+    {
+      "id": "View-Xote.Text.make",
+      "kind": "value",
+      "name": "make",
+      "signature": "let make: props<'value, 'children> => node",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/View.resi",
+        "line": 173,
+        "col": 3
+      },
+      "detail": 
+      {
+        "kind": "signature",
+        "details": {
+        "parameters": [{
+            "path": "props"
+          }],
+        "returnType": {
+          "path": "node"
+        }
+      }
+      }
+    }]
+  }, 
+  {
+    "id": "View-Xote.Int",
+    "name": "Int",
+    "kind": "module",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 176,
+      "col": 8
+    },
+    "items": [
+    {
+      "id": "View-Xote.Int.props",
+      "kind": "type",
+      "name": "props",
+      "signature": "type props<'value, 'children> = {\n  value?: 'value,\n  children?: 'children,\n}",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/View.resi",
+        "line": 177,
+        "col": 3
+      },
+      "detail": 
+      {
+        "kind": "record",
+        "items": [{
+          "name": "value",
+          "optional": true,
+          "docstrings": [],
+          "signature": "option<'value>"
+        }, {
+          "name": "children",
+          "optional": true,
+          "docstrings": [],
+          "signature": "option<'children>"
+        }]
+      }
+    }, 
+    {
+      "id": "View-Xote.Int.make",
+      "kind": "value",
+      "name": "make",
+      "signature": "let make: props<'value, 'children> => node",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/View.resi",
+        "line": 182,
+        "col": 3
+      },
+      "detail": 
+      {
+        "kind": "signature",
+        "details": {
+        "parameters": [{
+            "path": "props"
+          }],
+        "returnType": {
+          "path": "node"
+        }
+      }
+      }
+    }]
+  }, 
+  {
+    "id": "View-Xote.Float",
+    "name": "Float",
+    "kind": "module",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 185,
+      "col": 8
+    },
+    "items": [
+    {
+      "id": "View-Xote.Float.props",
+      "kind": "type",
+      "name": "props",
+      "signature": "type props<'value, 'children> = {\n  value?: 'value,\n  children?: 'children,\n}",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/View.resi",
+        "line": 186,
+        "col": 3
+      },
+      "detail": 
+      {
+        "kind": "record",
+        "items": [{
+          "name": "value",
+          "optional": true,
+          "docstrings": [],
+          "signature": "option<'value>"
+        }, {
+          "name": "children",
+          "optional": true,
+          "docstrings": [],
+          "signature": "option<'children>"
+        }]
+      }
+    }, 
+    {
+      "id": "View-Xote.Float.make",
+      "kind": "value",
+      "name": "make",
+      "signature": "let make: props<'value, 'children> => node",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/View.resi",
+        "line": 191,
+        "col": 3
+      },
+      "detail": 
+      {
+        "kind": "signature",
+        "details": {
+        "parameters": [{
+            "path": "props"
+          }],
+        "returnType": {
+          "path": "node"
+        }
+      }
+      }
+    }]
+  }, 
+  {
+    "id": "View-Xote.Bool",
+    "name": "Bool",
+    "kind": "module",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 194,
+      "col": 8
+    },
+    "items": [
+    {
+      "id": "View-Xote.Bool.props",
+      "kind": "type",
+      "name": "props",
+      "signature": "type props<'value, 'children> = {\n  value?: 'value,\n  children?: 'children,\n}",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/View.resi",
+        "line": 195,
+        "col": 3
+      },
+      "detail": 
+      {
+        "kind": "record",
+        "items": [{
+          "name": "value",
+          "optional": true,
+          "docstrings": [],
+          "signature": "option<'value>"
+        }, {
+          "name": "children",
+          "optional": true,
+          "docstrings": [],
+          "signature": "option<'children>"
+        }]
+      }
+    }, 
+    {
+      "id": "View-Xote.Bool.make",
+      "kind": "value",
+      "name": "make",
+      "signature": "let make: props<'value, 'children> => node",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/View.resi",
+        "line": 200,
+        "col": 3
+      },
+      "detail": 
+      {
+        "kind": "signature",
+        "details": {
+        "parameters": [{
+            "path": "props"
+          }],
+        "returnType": {
+          "path": "node"
+        }
+      }
+      }
+    }]
+  }, 
+  {
+    "id": "View-Xote.mount",
+    "kind": "value",
+    "name": "mount",
+    "signature": "let mount: (node, Dom.element) => unit",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 207,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "node"
+        }, {
+          "path": "Dom.element"
+        }],
+      "returnType": {
+        "path": "unit"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "View-Xote.mountById",
+    "kind": "value",
+    "name": "mountById",
+    "signature": "let mountById: (node, string) => unit",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 208,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "node"
+        }, {
+          "path": "string"
+        }],
+      "returnType": {
+        "path": "unit"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "View-Xote.child",
+    "kind": "value",
+    "name": "child",
+    "signature": "let child: 'a => node",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 225,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "returnType": {
+        "path": "node"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "View-Xote.probe",
+    "kind": "value",
+    "name": "probe",
+    "signature": "let probe: (string, unit => 'a) => 'a",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 232,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "string"
+        }],
+      "returnType": {
+        "path": "unit"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "View-Xote.isReactiveProp",
+    "kind": "value",
+    "name": "isReactiveProp",
+    "deprecated": "Internal helper. Use MaybeSignal.ofUnknown to normalize an untyped value.",
+    "signature": "let isReactiveProp: 'value => bool",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/View.resi",
+      "line": 239,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "returnType": {
+        "path": "bool"
+      }
+    }
+    }
+  }]
+}

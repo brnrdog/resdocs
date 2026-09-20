@@ -1,0 +1,246 @@
+
+{
+  "name": "Route-Xote",
+  "docstrings": [],
+  "source": {
+    "filepath": "src/Route.resi",
+    "line": 1,
+    "col": 1
+  },
+  "items": [
+  {
+    "id": "Route-Xote.params",
+    "kind": "type",
+    "name": "params",
+    "signature": "type params = Dict.t<string>",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/Route.resi",
+      "line": 8,
+      "col": 1
+    }
+  }, 
+  {
+    "id": "Route-Xote.matchResult",
+    "kind": "type",
+    "name": "matchResult",
+    "signature": "type matchResult = Match(params) | NoMatch",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/Route.resi",
+      "line": 10,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "variant",
+      "items": [
+      {
+        "name": "Match",
+        "docstrings": [],
+        "signature": "Match(params)"
+      }, 
+      {
+        "name": "NoMatch",
+        "docstrings": [],
+        "signature": "NoMatch"
+      }]
+    }
+  }, 
+  {
+    "id": "Route-Xote.match",
+    "kind": "value",
+    "name": "match",
+    "signature": "let match: (string, string) => matchResult",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/Route.resi",
+      "line": 15,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "string"
+        }, {
+          "path": "string"
+        }],
+      "returnType": {
+        "path": "matchResult"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "Route-Xote.segment",
+    "kind": "type",
+    "name": "segment",
+    "signature": "type segment = Static(string) | Param(string)",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/Route.resi",
+      "line": 22,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "variant",
+      "items": [
+      {
+        "name": "Static",
+        "docstrings": [],
+        "signature": "Static(string)"
+      }, 
+      {
+        "name": "Param",
+        "docstrings": [],
+        "signature": "Param(string)"
+      }]
+    }
+  }, 
+  {
+    "id": "Route-Xote.parsePattern",
+    "kind": "value",
+    "name": "parsePattern",
+    "deprecated": "Internal representation; use Route.match. Removed in the next major release.",
+    "signature": "let parsePattern: string => array<segment>",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/Route.resi",
+      "line": 27,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "string"
+        }],
+      "returnType": {
+        "path": "array",
+        "genericTypeParameters": [{
+          "path": "segment"
+        }]
+      }
+    }
+    }
+  }, 
+  {
+    "id": "Route-Xote.matchPath",
+    "kind": "value",
+    "name": "matchPath",
+    "deprecated": "Internal representation; use Route.match. Removed in the next major release.",
+    "signature": "let matchPath: (array<segment>, string) => matchResult",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/Route.resi",
+      "line": 30,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "array",
+          "genericTypeParameters": [{
+            "path": "segment"
+          }]
+        }, {
+          "path": "string"
+        }],
+      "returnType": {
+        "path": "matchResult"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "Route-Xote.compile",
+    "kind": "value",
+    "name": "compile",
+    "deprecated": "Use Route.match. Removed in the next major release.",
+    "signature": "let compile: string => array<segment>",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/Route.resi",
+      "line": 33,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "string"
+        }],
+      "returnType": {
+        "path": "array",
+        "genericTypeParameters": [{
+          "path": "segment"
+        }]
+      }
+    }
+    }
+  }, 
+  {
+    "id": "Route-Xote.matchCompiled",
+    "kind": "value",
+    "name": "matchCompiled",
+    "deprecated": "Use Route.match. Removed in the next major release.",
+    "signature": "let matchCompiled: (array<segment>, string) => matchResult",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/Route.resi",
+      "line": 36,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "array",
+          "genericTypeParameters": [{
+            "path": "segment"
+          }]
+        }, {
+          "path": "string"
+        }],
+      "returnType": {
+        "path": "matchResult"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "Route-Xote.matchPathname",
+    "kind": "value",
+    "name": "matchPathname",
+    "deprecated": "Use Route.match. Removed in the next major release.",
+    "signature": "let matchPathname: (string, string) => matchResult",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/Route.resi",
+      "line": 39,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "string"
+        }, {
+          "path": "string"
+        }],
+      "returnType": {
+        "path": "matchResult"
+      }
+    }
+    }
+  }]
+}

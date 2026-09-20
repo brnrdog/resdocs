@@ -1,6 +1,9 @@
 {
   "name": "resdocs",
-  "sources": [{"dir": "src", "subdirs": true}],
+  "sources": [
+    {"dir": "src", "subdirs": true},
+    {"dir": "tests", "subdirs": true, "type": "dev"}
+  ],
   "package-specs": {"module": "esmodule", "in-source": true},
   "suffix": ".res.mjs",
   "dependencies": ["xote", "rescript-signals"],

@@ -1,0 +1,295 @@
+
+{
+  "name": "Probe",
+  "docstrings": [],
+  "source": {
+    "filepath": "src/Probe.res",
+    "line": 1,
+    "col": 1
+  },
+  "items": [
+  {
+    "id": "Probe.conf",
+    "kind": "type",
+    "name": "conf",
+    "signature": "type conf = {name: string, count?: int, next: option<conf>}",
+    "docstrings": ["Module-level docstring with **markdown** and a list:\n- one\n- two"],
+    "source": {
+      "filepath": "src/Probe.res",
+      "line": 7,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "record",
+      "items": [{
+        "name": "name",
+        "optional": false,
+        "docstrings": [],
+        "signature": "string"
+      }, {
+        "name": "count",
+        "optional": true,
+        "docstrings": [],
+        "signature": "option<int>"
+      }, {
+        "name": "next",
+        "optional": false,
+        "docstrings": [],
+        "signature": "option<conf>"
+      }]
+    }
+  }, 
+  {
+    "id": "Probe.shape",
+    "kind": "type",
+    "name": "shape",
+    "signature": "type shape = A | B(int) | C({w: float, h: float})",
+    "docstrings": ["A variant.\n```rescript\nlet x = A\n```"],
+    "source": {
+      "filepath": "src/Probe.res",
+      "line": 14,
+      "col": 1
+    },
+    "detail": 
+    {
+      "kind": "variant",
+      "items": [
+      {
+        "name": "A",
+        "docstrings": [],
+        "signature": "A"
+      }, 
+      {
+        "name": "B",
+        "docstrings": [],
+        "signature": "B(int)"
+      }, 
+      {
+        "name": "C",
+        "docstrings": [],
+        "signature": "C({w: float, h: float})",
+        "payload": {
+          "kind": "inlineRecord",
+          "fields": [{
+            "name": "w",
+            "optional": false,
+            "docstrings": [],
+            "signature": "float"
+          }, {
+            "name": "h",
+            "optional": false,
+            "docstrings": [],
+            "signature": "float"
+          }]
+        }
+      }]
+    }
+  }, 
+  {
+    "id": "Probe.run",
+    "kind": "value",
+    "name": "run",
+    "signature": "let run: (\n  ~label: string,\n  ~retries: int=?,\n  array<conf>,\n  conf => shape,\n) => result<shape, string>",
+    "docstrings": ["Doc for `run`."],
+    "source": {
+      "filepath": "src/Probe.res",
+      "line": 17,
+      "col": 5
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "string"
+        }, {
+          "path": "option",
+          "genericTypeParameters": [{
+            "path": "int"
+          }]
+        }, {
+          "path": "array",
+          "genericTypeParameters": [{
+            "path": "conf"
+          }]
+        }, {
+          "path": "conf"
+        }, {
+          "path": "shape"
+        }],
+      "returnType": {
+        "path": "result",
+        "genericTypeParameters": [{
+          "path": "shape"
+        }, {
+          "path": "string"
+        }]
+      }
+    }
+    }
+  }, 
+  {
+    "id": "Probe.old",
+    "kind": "value",
+    "name": "old",
+    "deprecated": "Use run",
+    "signature": "let old: int => int",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/Probe.res",
+      "line": 23,
+      "col": 28
+    },
+    "detail": 
+    {
+      "kind": "signature",
+      "details": {
+      "parameters": [{
+          "path": "int"
+        }],
+      "returnType": {
+        "path": "int"
+      }
+    }
+    }
+  }, 
+  {
+    "id": "Probe.Inner",
+    "name": "Inner",
+    "kind": "module",
+    "docstrings": ["Nested module docs"],
+    "source": {
+      "filepath": "src/Probe.res",
+      "line": 26,
+      "col": 8
+    },
+    "items": [
+    {
+      "id": "Probe.Inner.t",
+      "kind": "type",
+      "name": "t",
+      "signature": "type t = string",
+      "docstrings": ["inner type"],
+      "source": {
+        "filepath": "src/Probe.res",
+        "line": 28,
+        "col": 3
+      }
+    }, 
+    {
+      "id": "Probe.Inner.make",
+      "kind": "value",
+      "name": "make",
+      "signature": "let make: string => t",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/Probe.res",
+        "line": 29,
+        "col": 7
+      },
+      "detail": 
+      {
+        "kind": "signature",
+        "details": {
+        "parameters": [{
+            "path": "string"
+          }],
+        "returnType": {
+          "path": "t"
+        }
+      }
+      }
+    }, 
+    {
+      "id": "Probe.Inner.sig_",
+      "kind": "value",
+      "name": "sig_",
+      "signature": "let sig_: Xote.Signal.t<int>",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/Probe.res",
+        "line": 30,
+        "col": 7
+      },
+      "detail": 
+      {
+        "kind": "signature",
+        "details": {
+        "returnType": {
+          "path": "Xote.Signal.t",
+          "genericTypeParameters": [{
+            "path": "int"
+          }]
+        }
+      }
+      }
+    }, 
+    {
+      "id": "Probe.Inner.node",
+      "kind": "value",
+      "name": "node",
+      "signature": "let node: Xote.View.node",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/Probe.res",
+        "line": 31,
+        "col": 7
+      },
+      "detail": 
+      {
+        "kind": "signature",
+        "details": {
+        "returnType": {
+          "path": "Xote.View.node"
+        }
+      }
+      }
+    }]
+  }, 
+  {
+    "id": "Probe.S",
+    "name": "S",
+    "kind": "moduleType",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/Probe.res",
+      "line": 34,
+      "col": 13
+    },
+    "items": [
+    {
+      "id": "Probe.S.v",
+      "kind": "value",
+      "name": "v",
+      "signature": "let v: int",
+      "docstrings": [],
+      "source": {
+        "filepath": "src/Probe.res",
+        "line": 35,
+        "col": 3
+      },
+      "detail": 
+      {
+        "kind": "signature",
+        "details": {
+        "returnType": {
+          "path": "int"
+        }
+      }
+      }
+    }]
+  }, 
+  {
+    "id": "Probe.Alias",
+    "kind": "moduleAlias",
+    "name": "Alias",
+    "docstrings": [],
+    "source": {
+      "filepath": "src/Probe.res",
+      "line": 38,
+      "col": 8
+    },
+    "items": []
+  }]
+}
