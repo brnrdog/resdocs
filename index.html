@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>__RESDOCS_TITLE__</title>
+    <script>
+      window.__RESDOCS_BASE__ = "/__RESDOCS_BASE__/";
+      try {
+        var t = localStorage.getItem("resdocs-theme");
+        if (!t && matchMedia("(prefers-color-scheme: dark)").matches) t = "dark";
+        document.documentElement.setAttribute("data-theme", t || "light");
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="/src/viewer/styles.css" />
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/viewer/Main.res.mjs"></script>
+  </body>
+</html>

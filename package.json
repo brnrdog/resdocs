@@ -10,6 +10,7 @@
     "xote": "7.2.0-beta.1"
   },
   "devDependencies": {
+    "playwright": "^1.63.0",
     "rescript": "^12.3.1",
     "vite": "^8.3.0",
     "zekr": "^2.1.0"
