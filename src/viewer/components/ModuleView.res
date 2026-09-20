@@ -42,51 +42,77 @@ let deprecated = (message: option<string>): View.node =>
 let doc = (~code: option<string>, ~fallback: string): View.node =>
   fallback == "" ? View.empty() : <div class="doc"> {Markdown.render(~code, ~fallback)} </div>
 
-let fieldRow = (f: Bundle.field): View.node =>
+let documented = (field: Bundle.field) => field.doc != "" || field.deprecated->Option.isSome
+
+/* The Doc column only earns its width when something fills it. */
+let fieldRow = (~withDoc: bool, f: Bundle.field): View.node =>
   <tr>
     <td> <code class="field-name"> {View.text(f.name ++ (f.optional ? "?" : ""))} </code> </td>
     <td> {Signature.inline(f.signature)} </td>
-    <td> {doc(~code=f.docCode, ~fallback=f.doc)} {deprecated(f.deprecated)} </td>
+    {withDoc
+      ? <td> {doc(~code=f.docCode, ~fallback=f.doc)} {deprecated(f.deprecated)} </td>
+      : View.empty()}
   </tr>
 
-let fieldsTable = (fields: array<Bundle.field>): View.node =>
+let fieldsTable = (fields: array<Bundle.field>): View.node => {
+  let withDoc = fields->Array.some(documented)
   <table class="fields">
-    <thead> <tr> <th> {View.text("Field")} </th> <th> {View.text("Type")} </th> <th> {View.text("Doc")} </th> </tr> </thead>
+    <thead>
+      <tr>
+        <th> {View.text("Field")} </th>
+        <th> {View.text("Type")} </th>
+        {withDoc ? <th> {View.text("Doc")} </th> : View.empty()}
+      </tr>
+    </thead>
     <tbody>
-      <View.For each={MaybeSignal.static(fields)} by={f => f.name} render=fieldRow />
+      <View.For
+        each={MaybeSignal.static(fields)}
+        by={f => f.name}
+        render={f => fieldRow(~withDoc, f)}
+      />
     </tbody>
   </table>
+}
 
 let constructorRow = (c: Bundle.constructor): View.node =>
   <li class="constructor">
-    {Signature.inline(c.signature)}
-    {doc(~code=c.docCode, ~fallback=c.doc)}
+    <div class="constructor-head"> {Signature.inline(c.signature)} </div>
     {deprecated(c.deprecated)}
+    {doc(~code=c.docCode, ~fallback=c.doc)}
     {Array.length(c.fields) > 0 ? fieldsTable(c.fields) : View.empty()}
   </li>
+
+/* A variant's signature already lists its constructors, so the
+   expanded list is only worth its space when a constructor carries
+   its own documentation or an inline record payload. */
+let constructorsWorthListing = (constructors: array<Bundle.constructor>) =>
+  constructors->Array.some(c =>
+    c.doc != "" || c.deprecated->Option.isSome || Array.length(c.fields) > 0
+  )
 
 let detail = (item: Bundle.item): View.node =>
   switch item.detail {
   | Abstract => View.empty()
-  | Record({fields}) => fieldsTable(fields)
+  | Record({fields}) => Array.length(fields) == 0 ? View.empty() : fieldsTable(fields)
   | Variant({constructors}) =>
-    <ul class="constructors">
-      <View.For each={MaybeSignal.static(constructors)} by={c => c.name} render=constructorRow />
-    </ul>
+    constructorsWorthListing(constructors)
+      ? <ul class="constructors">
+          <View.For each={MaybeSignal.static(constructors)} by={c => c.name} render=constructorRow />
+        </ul>
+      : View.empty()
   }
 
 let itemCard = (item: Bundle.item): View.node =>
   <section class="item" id={item.anchor}>
     <h3 class="item-title">
       {anchorLink(item.anchor)}
-      {badge(kindName(item.kind))}
       <code> {View.text(item.name)} </code>
       {sourceLink(item.source)}
     </h3>
     {Signature.render(item)}
     {deprecated(item.deprecated)}
-    {detail(item)}
     {doc(~code=item.docCode, ~fallback=item.doc)}
+    {detail(item)}
   </section>
 
 let group = (~title: string, ~anchor: string, items: array<Bundle.item>): View.node =>
