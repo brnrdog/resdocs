@@ -1,6 +1,10 @@
 /* resdocs build: document a ReScript package into one bundle and a
    static site. See docs/design.md section 2. */
 
+type command =
+  | Build
+  | Index
+
 type options = {
   project: string,
   out: string,
@@ -8,9 +12,12 @@ type options = {
   ref: option<string>,
   dir: option<string>,
   base: option<string>,
+  hub: option<string>,
   title: option<string>,
+  tagline: option<string>,
   exclude: array<string>,
   bundleOnly: bool,
+  command: command,
 }
 
 let defaults = {
@@ -20,12 +27,20 @@ let defaults = {
   ref: None,
   dir: None,
   base: None,
+  hub: None,
   title: None,
+  tagline: None,
   exclude: [],
   bundleOnly: false,
+  command: Build,
 }
 
 let usage = `usage: resdocs build [options]
+       resdocs hub [options]
+
+resdocs build documents one package. resdocs hub writes an index page
+over a directory of already-built packages, so one site can host the
+API docs of many ReScript packages.
 
   --project <dir>    ReScript project to document (default: .)
   --out <dir>        output directory (default: docs-site)
@@ -33,9 +48,17 @@ let usage = `usage: resdocs build [options]
   --ref <ref>        git ref for source links (default: main)
   --dir <path>       package directory inside the repository
   --base <path>      URL path the site is served from (default: /)
+  --hub <url>        link back to the package index this site is part of
   --title <text>     site title (default: package name)
   --exclude <globs>  comma separated module patterns, e.g. Runtime*
   --bundle-only      write resdocs.json and skip the viewer
+
+hub options:
+
+  --out <dir>        directory holding one subdirectory per package
+  --base <path>      URL path the index is served from (default: /)
+  --title <text>     index heading (default: ReScript API docs)
+  --tagline <text>   one line under the heading
 
 Options may also come from resdocs.config.json in the project.`
 
@@ -55,14 +78,17 @@ let parseArgs = (argv: array<string>): result<options, string> => {
   while i.contents < Array.length(argv) && error.contents == None {
     let arg = argv->Array.getUnsafe(i.contents)
     switch arg {
-    | "build" => ()
+    | "build" => opts := {...opts.contents, command: Build}
+    | "hub" | "index" => opts := {...opts.contents, command: Index}
     | "--project" => opts := {...opts.contents, project: next(arg)}
     | "--out" => opts := {...opts.contents, out: next(arg)}
     | "--repo" => opts := {...opts.contents, repo: Some(next(arg))}
     | "--ref" => opts := {...opts.contents, ref: Some(next(arg))}
     | "--dir" => opts := {...opts.contents, dir: Some(next(arg))}
     | "--base" => opts := {...opts.contents, base: Some(next(arg))}
+    | "--hub" => opts := {...opts.contents, hub: Some(next(arg))}
     | "--title" => opts := {...opts.contents, title: Some(next(arg))}
+    | "--tagline" => opts := {...opts.contents, tagline: Some(next(arg))}
     | "--exclude" =>
       opts := {...opts.contents, exclude: next(arg)->String.split(",")->Array.map(String.trim)}
     | "--bundle-only" => opts := {...opts.contents, bundleOnly: true}
@@ -98,7 +124,9 @@ let withConfigFile = (opts: options, projectDir: string): options => {
         ref: orConfig(opts.ref, "ref"),
         dir: orConfig(opts.dir, "dir"),
         base: orConfig(opts.base, "base"),
+        hub: orConfig(opts.hub, "hub"),
         title: orConfig(opts.title, "title"),
+        tagline: orConfig(opts.tagline, "tagline"),
         exclude: Array.length(opts.exclude) > 0
           ? opts.exclude
           : o
@@ -190,6 +218,7 @@ let writeSite = (~out: string, ~base: string, ~title: string): result<unit, stri
     Error("viewer not built at " ++ viewer ++ ", run `npm run build` in resdocs")
   } else {
     Node.copyDir(viewer, out)
+    Node.writeFileSync(Node.join([out, "logo.svg"]), Hub.logoFile)
     let index = Node.join([out, "index.html"])
     let html =
       Node.readFileSync(index)
@@ -258,11 +287,15 @@ let build = async (opts: options): int => {
           },
         })
         let title = opts.title->Option.getOr(project.name)
+        let info = Project.packageInfo(projectDir)
         let bundle: Bundle.bundle = {
           version: Bundle.version,
-          package: project.name,
+          package: info.npmName == "" ? project.name : info.npmName,
+          packageVersion: info.version,
+          description: info.description,
           namespace,
           title,
+          hub: opts.hub,
           repo,
           generatedAt: Node.nowIso(),
           modules,
@@ -291,10 +324,38 @@ let build = async (opts: options): int => {
   }
 }
 
+let writeIndex = (opts: options): int => {
+  let root = Node.resolve(Node.cwd(), opts.out)
+  if !Node.existsSync(root) {
+    fail("no such directory: " ++ opts.out)
+  } else {
+    let count = Hub.write(
+      ~root,
+      ~title=opts.title->Option.getOr("ReScript API docs"),
+      ~tagline=opts.tagline->Option.getOr(
+        "Generated API documentation for ReScript packages.",
+      ),
+      ~base=normalizeBase(opts.base->Option.getOr("/")),
+    )
+    Node.log(
+      `resdocs: index over ${Int.toString(count)} package` ++
+      (count == 1 ? "" : "s") ++
+      " written to " ++
+      Node.relative(Node.cwd(), root) ++
+      "/index.html",
+    )
+    0
+  }
+}
+
 let main = async (argv: array<string>): int =>
   switch parseArgs(argv) {
   | Error(message) =>
     Node.warn(message)
     message == usage ? 0 : 2
-  | Ok(opts) => await build(opts)
+  | Ok(opts) =>
+    switch opts.command {
+    | Build => await build(opts)
+    | Index => writeIndex(opts)
+    }
   }

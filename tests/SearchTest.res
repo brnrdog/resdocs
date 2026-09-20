@@ -3,8 +3,11 @@ open Zekr
 let bundle = (): Bundle.bundle => {
   version: 1,
   package: "xote",
+  packageVersion: "",
+  description: "",
   namespace: Some("Xote"),
   title: "xote",
+  hub: None,
   repo: None,
   generatedAt: "",
   modules: [

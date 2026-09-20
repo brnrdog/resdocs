@@ -29,6 +29,54 @@ let title = Computed.make(
 
 let topModules = Computed.make(() => Signal.get(bundle)->Option.mapOr([], b => b.modules))
 
+/* ------------------------------------------------------ package facts */
+
+let packageName = Computed.make(
+  () => Signal.get(bundle)->Option.mapOr("", b => b.package),
+  ~equals=(a, b) => a == b,
+)
+
+let packageVersion = Computed.make(
+  () => Signal.get(bundle)->Option.mapOr("", b => b.packageVersion),
+  ~equals=(a, b) => a == b,
+)
+
+let description = Computed.make(
+  () => Signal.get(bundle)->Option.mapOr("", b => b.description),
+  ~equals=(a, b) => a == b,
+)
+
+let hubUrl = Computed.make(
+  () => Signal.get(bundle)->Option.flatMap(b => b.hub),
+  ~equals=(a, b) => a == b,
+)
+
+let repoUrl = Computed.make(
+  () => Signal.get(bundle)->Option.flatMap(b => b.repo)->Option.map(r => r.url),
+  ~equals=(a, b) => a == b,
+)
+
+/* Scoped and plain npm names alike live at /package/<name>. A package
+   whose name is not on npm simply has a link that 404s, so the link is
+   only offered when the bundle came from a package.json name. */
+let npmUrl = Computed.make(
+  () =>
+    switch Signal.get(bundle) {
+    | Some(b) if b.package != "" => Some("https://www.npmjs.com/package/" ++ b.package)
+    | _ => None
+    },
+  ~equals=(a, b) => a == b,
+)
+
+let installLine = Computed.make(
+  () =>
+    switch Signal.get(bundle) {
+    | Some(b) if b.package != "" => Some("npm install " ++ b.package)
+    | _ => None
+    },
+  ~equals=(a, b) => a == b,
+)
+
 let moduleMap = Computed.make(() => {
   let dict = Dict.make()
   Signal.get(bundle)

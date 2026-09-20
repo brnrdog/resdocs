@@ -73,8 +73,11 @@ type repo = {url: string, ref: string, dir: string}
 type bundle = {
   version: int,
   package: string,
+  packageVersion: string,
+  description: string,
   namespace: option<string>,
   title: string,
+  hub: option<string>,
   repo: option<repo>,
   generatedAt: string,
   modules: array<module_>,
