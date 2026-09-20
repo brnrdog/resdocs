@@ -305,6 +305,27 @@ Layout consequences of the hub idea:
   That is the page a reader lands on from the index.
 - The sidebar lists only modules, under a heading, so it stays the
   within-package navigator.
+- The header mark reads `hubUrl` through a `View.tracked` block, not
+  a one-shot read: the bundle arrives after the first render, so a
+  peek would latch in the standalone link.
+
+## 6c. The theme
+
+Reading-first, which constrains the chrome more than the palette
+does. The brand red appears only on the logo, the current sidebar
+item and the selected search result; links use a desaturated form of
+it. Body text sits at 11.7:1 rather than the 17.8:1 of the brand
+navy on white, because long reading does not want maximum contrast.
+Syntax highlighting is four hues at or above 5:1 on the code
+surface, with comments recessive through italics. There are no
+rounded corners anywhere, including the logo tile.
+
+Item pages order their parts for reading: signature, deprecation,
+prose, then tables. Two reductions follow from the same principle: a
+variant lists its constructors only when one carries documentation
+or an inline record, and an item omits its kind label when the
+section heading above already states it. Section anchors live in the
+left gutter, so revealing one on hover never shifts the heading.
 
 ## 7. GitHub Action (`action.yml`)
 

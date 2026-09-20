@@ -204,17 +204,17 @@ Search (58 keystrokes, up to 50 results)
 
 | Measure      | Median | p95   |
 |--------------|--------|-------|
-| Update (ms)  | 0.90   | 5.30  |
-| Painted (ms) | 30.90  | 31.30 |
+| Update (ms)  | 1.00   | 4.70  |
+| Painted (ms) | 30.40  | 31.40 |
 
 Module page render (median of 5)
 
 | Module        | Items | Render (ms) | Painted (ms) |
 |---------------|-------|-------------|--------------|
-| Xote.View     | 53    | 6.60        | 31.30        |
-| Xote.XoteJSX  | 29    | 10.60       | 40.80        |
-| Xote.Router   | 16    | 4.00        | 18.30        |
-| Xote.SSRState | 18    | 4.00        | 30.10        |
+| Xote.View     | 53    | 6.70        | 32.90        |
+| Xote.XoteJSX  | 29    | 13.00       | 39.70        |
+| Xote.Router   | 16    | 4.50        | 23.00        |
+| Xote.SSRState | 18    | 3.70        | 30.80        |
 
 ## Development
 
@@ -228,19 +228,37 @@ Module page render (median of 5)
 
 ## Design
 
-The palette is ReScript's: `rgb(230, 72, 79)` for the brand red,
-`rgb(20, 22, 44)` for the navy used by the header bar and the whole
-dark theme, and `oklch(0.928 0.006 264.531)` as the light surface
-tone. The brand red is 3.89:1 on white, enough for the mark, borders
-and badges but not for body text, so links and keywords use a
-darkened red (6.17:1) in light mode and a lightened one (7.07:1 on
-navy) in dark mode.
+The palette is ReScript's, used sparingly. The brand red,
+`rgb(230, 72, 79)`, is a signal rather than a surface: it marks the
+logo, the current module and the selected search result, and nothing
+else. Links use a desaturated form of it at 6.2:1 on white. The
+navy, `rgb(20, 22, 44)`, is the dark theme's paper rather than a
+band across the top of the light one, and the light surface tone,
+`oklch(0.928 0.006 264.531)`, is the border.
+
+Long reading drove the rest. Body text is deliberately not black:
+`#333846` reads at 11.7:1, clear of AA without the glare of a
+near-black on white. Text runs to a 46rem measure at 16px and a
+1.65 line height. Syntax highlighting is four hues, each at or above
+5:1 on the code surface, with comments recessive through italics
+rather than through low contrast. Item kinds are words in the muted
+tone, not filled chips, and the per-item kind is dropped where the
+section heading above already says it.
+
+Corners are square, including the logo tile and what were pill
+badges.
 
 The logo is the ReScript tile with an open book where the letter
-sits: same rounded square, same red, so the two read as a family
-without copying the letterform. It lives in two places that must
-stay in sync, `src/viewer/components/Logo.res` for the app and
-`Hub.logoFile` for the favicon and the index page.
+sits, in the same red, so the two read as a family without copying
+the letterform. The mark lives in two places that must stay in sync,
+`src/viewer/components/Logo.res` for the app and `Hub.logoFile` for
+the favicon and the index page.
+
+Item pages read in the order a reader needs: signature, then any
+deprecation notice, then the prose, then the structural tables. A
+variant's constructors are only expanded when one of them carries
+its own documentation or an inline record, since the signature above
+already lists them.
 
 ## Limitations
 

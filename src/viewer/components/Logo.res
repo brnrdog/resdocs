@@ -1,6 +1,7 @@
 /* The resdocs mark: the ReScript tile with an open book where its
-   letter sits. Same rounded square and red as the ReScript logo, so
-   the two read as a family without copying the letterform. */
+   letter sits, in the same red, so the two read as a family without
+   copying the letterform. The tile is square, like everything else
+   in the theme. */
 
 open Xote
 
@@ -27,7 +28,6 @@ let make = (~size: int=28, ~attrs: array<(string, View.attrValue)>=[]): View.nod
           View.attr("y", "0"),
           View.attr("width", "32"),
           View.attr("height", "32"),
-          View.attr("rx", "7"),
           View.attr("fill", "currentColor"),
         ],
         (),
