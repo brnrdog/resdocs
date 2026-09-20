@@ -44,18 +44,18 @@ the commit being built.
 
 ### Action inputs
 
-| Input          | Default             | Meaning                        |
-|----------------|---------------------|--------------------------------|
-| `project`      | `.`                 | directory with `rescript.json` |
-| `out`          | `docs-site`         | output directory               |
-| `base`         | `/<repo name>/`     | URL path of the site           |
-| `repo`         | this repository     | repository URL, source links   |
-| `ref`          | the built commit    | git ref for source links       |
-| `dir`          | from `package.json` | package directory, monorepos   |
-| `title`        | package name        | site title                     |
-| `exclude`      |                     | module patterns, `Runtime*`    |
-| `deploy`       | `true`              | upload and deploy to Pages     |
-| `node-version` | `22`                | Node.js version                |
+| Input          | Default             | Meaning                       |
+| -------------- | ------------------- | ----------------------------- |
+| `project`      | `.`                 | dir with `rescript.json`      |
+| `out`          | `docs-site`         | output directory              |
+| `base`         | `/<repo name>/`     | URL path of the site          |
+| `repo`         | this repository     | repository URL, source links  |
+| `ref`          | the built commit    | git ref for source links      |
+| `dir`          | from `package.json` | package directory, monorepos  |
+| `title`        | package name        | site title                    |
+| `exclude`      |                     | module patterns, `Runtime*`   |
+| `deploy`       | `true`              | upload and deploy to Pages    |
+| `node-version` | `22`                | Node.js version               |
 
 With `deploy: "false"` the Action only writes the site, which is how
 this repository publishes two packages under one Pages site
@@ -152,30 +152,30 @@ against xote's JSX runtime through `Xote.Mdx`.
 
 ## Performance
 
-Measured by `npm run bench` on the xote bundle (15 modules, 227
-items) in headless Chromium on a container CPU. The harness types
-four queries character by character and navigates between the
-largest module pages through the sidebar. "Update" is the
-synchronous work inside the input event (search, signals, DOM
-reconciliation) and "Render" the synchronous work inside the link
-click; "Painted" waits two animation frames, so it is bounded below
-by the display refresh interval.
+Measured by `npm run bench` on the xote bundle (15 file modules, 30
+modules in total, 188 items) in headless Chromium on a container
+CPU. The harness types four queries character by character and
+navigates between the largest module pages through the sidebar.
+"Update" is the synchronous work inside the input event (search,
+signals, DOM reconciliation) and "Render" the synchronous work
+inside the link click; "Painted" waits two animation frames, so it
+is bounded below by the display refresh interval.
 
 Search (58 keystrokes, up to 50 results)
 
-| Measure           | Median | p95  |
-|-------------------|--------|------|
-| Update (ms)       | 0.70   | 3.20 |
-| Painted (ms)      | 31.10  | 31.50 |
+| Measure      | Median | p95   |
+|--------------|--------|-------|
+| Update (ms)  | 0.70   | 3.20  |
+| Painted (ms) | 31.40  | 31.80 |
 
 Module page render (median of 5)
 
 | Module        | Items | Render (ms) | Painted (ms) |
 |---------------|-------|-------------|--------------|
-| Xote.View     | 53    | 4.60        | 31.50        |
-| Xote.XoteJSX  | 29    | 8.50        | 33.90        |
-| Xote.Router   | 16    | 3.10        | 31.60        |
-| Xote.SSRState | 18    | 2.80        | 31.20        |
+| Xote.View     | 53    | 4.10        | 32.00        |
+| Xote.XoteJSX  | 29    | 11.20       | 33.40        |
+| Xote.Router   | 16    | 2.90        | 31.60        |
+| Xote.SSRState | 18    | 2.60        | 31.80        |
 
 ## Development
 
