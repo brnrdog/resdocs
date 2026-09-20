@@ -1,9 +1,13 @@
 # resdocs
 
-HexDocs-style documentation sites for ReScript packages. A CLI turns
+An API documentation repository for ReScript packages. A CLI turns
 the output of `rescript-tools doc` into one JSON bundle, a static
 single page app renders it, and a GitHub Action publishes it to
-Pages. The viewer is written in ReScript with
+Pages. One site documents one package; a second command writes an
+index over many of them, so a single deployment can host the docs of
+a whole ecosystem.
+
+The viewer is written in ReScript with
 [xote](https://github.com/brnrdog/xote) and rescript-signals: every
 piece of UI state is a signal, and search and navigation update
 synchronously per keystroke.
@@ -42,6 +46,24 @@ Enable GitHub Pages with "GitHub Actions" as the source, and the site
 appears at `https://<user>.github.io/<repo>/`. Source links point at
 the commit being built.
 
+### Hosting several packages
+
+`resdocs hub` writes an index page over a directory that already
+holds one built package per subdirectory. Build each package with
+`--hub` so its header links back:
+
+    resdocs build --project deps/xote --out site/xote \
+      --base /docs/xote/ --hub /docs/
+    resdocs build --project deps/rescript-signals --out site/signals \
+      --base /docs/signals/ --hub /docs/
+    resdocs hub --out site --base /docs/ --title "ReScript API docs"
+
+The index is plain HTML with no JavaScript. It reads each package's
+name, version, description and module count out of its bundle. The
+Action does the same with `command: hub`, which is how this
+repository publishes both packages under one site
+(`.github/workflows/docs.yml`).
+
 ### Action inputs
 
 | Input          | Default             | Meaning                       |
@@ -65,7 +87,11 @@ this repository publishes two packages under one Pages site
 
     resdocs build [--project <dir>] [--out <dir>] [--base <path>]
                   [--repo <url>] [--ref <ref>] [--dir <path>]
-                  [--title <text>] [--exclude <globs>] [--bundle-only]
+                  [--hub <url>] [--title <text>] [--exclude <globs>]
+                  [--bundle-only]
+
+    resdocs hub [--out <dir>] [--base <path>] [--title <text>]
+                [--tagline <text>]
 
 The same options can live in `resdocs.config.json` next to
 `rescript.json`:
@@ -82,14 +108,26 @@ The CLI compiles the project if `lib/bs` is missing, documents every
 binary that ships with the project's own `rescript` install, and
 warns about public items without a docstring.
 
-### Writing docstrings
+### Writing docstrings and examples
 
 Only `/** */` comments are documentation; `/* */` comments are not.
 A `/*** */` comment at the top of a file documents the module.
 Docstrings are Markdown with GitHub tables, compiled as MDX at build
-time. Fenced blocks tagged `rescript` are syntax highlighted. Text
-that is not valid MDX (an unclosed `<tag>` for instance) is shown
-verbatim.
+time. Fenced blocks tagged `rescript` are syntax highlighted, which
+is how examples are written, following the stdlib convention:
+
+    /** Runs `f` once per item and collects the results.
+
+    ## Examples
+
+    ```rescript
+    let doubled = run([1, 2, 3], x => x * 2)
+    ```
+    */
+
+Examples are rendered, not compiled, so nothing checks that they
+still typecheck. Text that is not valid MDX (an unclosed `<tag>` for
+instance) is shown verbatim.
 
 ## Requirements
 
@@ -108,6 +146,7 @@ verbatim.
       Refs        type reference resolution
       Search      index and ranking
     src/cli       Node only
+      Hub         the package index page
     src/viewer    browser only, xote components
     tests         Zekr suites (run with `npm test`)
     bench         Playwright harness (`npm run bench`)
@@ -165,17 +204,17 @@ Search (58 keystrokes, up to 50 results)
 
 | Measure      | Median | p95   |
 |--------------|--------|-------|
-| Update (ms)  | 0.70   | 3.20  |
-| Painted (ms) | 31.40  | 31.80 |
+| Update (ms)  | 0.90   | 5.30  |
+| Painted (ms) | 30.90  | 31.30 |
 
 Module page render (median of 5)
 
 | Module        | Items | Render (ms) | Painted (ms) |
 |---------------|-------|-------------|--------------|
-| Xote.View     | 53    | 4.10        | 32.00        |
-| Xote.XoteJSX  | 29    | 11.20       | 33.40        |
-| Xote.Router   | 16    | 2.90        | 31.60        |
-| Xote.SSRState | 18    | 2.60        | 31.80        |
+| Xote.View     | 53    | 6.60        | 31.30        |
+| Xote.XoteJSX  | 29    | 10.60       | 40.80        |
+| Xote.Router   | 16    | 4.00        | 18.30        |
+| Xote.SSRState | 18    | 4.00        | 30.10        |
 
 ## Development
 
@@ -187,10 +226,28 @@ Module page render (median of 5)
     npm run bench       benchmark on the xote bundle
     npm run docs:xote   full site for xote into docs-site/xote
 
+## Design
+
+The palette is ReScript's: `rgb(230, 72, 79)` for the brand red,
+`rgb(20, 22, 44)` for the navy used by the header bar and the whole
+dark theme, and `oklch(0.928 0.006 264.531)` as the light surface
+tone. The brand red is 3.89:1 on white, enough for the mark, borders
+and badges but not for body text, so links and keywords use a
+darkened red (6.17:1) in light mode and a lightened one (7.07:1 on
+navy) in dark mode.
+
+The logo is the ReScript tile with an open book where the letter
+sits: same rounded square, same red, so the two read as a family
+without copying the letterform. It lives in two places that must
+stay in sync, `src/viewer/components/Logo.res` for the app and
+`Hub.logoFile` for the favicon and the index page.
+
 ## Limitations
 
 - xote and rescript-signals currently use `/* */` comments, so their
   generated sites show signatures, types and source links but no
   prose until those become `/** */`.
 - `Stdlib` and `Dom` types are not linked.
-- No versioned docs, no multi-package search, no server rendering.
+- Search covers one package at a time. The index page links packages
+  but does not search across them.
+- No versioned docs and no server rendering.

@@ -31,6 +31,7 @@ breaks both at compile time.
           SigTokens.res      signature tokenizer, shared with viewer
         cli/
           Cli.res            entry: parse args, run pipeline, write
+          Hub.res            the package index page
           Project.res        read rescript.json, list source files
           Tools.res          locate and run rescript-tools
           Node.res           fs, path, child_process externals
@@ -44,19 +45,23 @@ breaks both at compile time.
           Highlight.res      ReScript syntax highlighting
           components/
             App.res          layout shell, page switch
+            Header.res       hub link, package identity, actions
+            Logo.res         the book mark
+            PackageHome.res  package landing page
             Sidebar.res      module tree, View.For over modules
             SidebarEntry.res one top level module and its subtree
             ModulePage.res   current module or not found
             ModuleView.res   types, values, submodules, item cards
-            Home.res         package overview
             SearchBox.res    input, results, keyboard navigation
             ThemeToggle.res
-          styles.css
+          styles.css         ReScript palette, light and dark
+          logo.svg           favicon
       tests/
         NormalizeTest.res    Zekr, fixture driven
         SearchTest.res       Zekr, ranking assertions
         RefsTest.res
         SigTokensTest.res
+        HubTest.res          index page rendering
         ViewerTest.res       markdown, signature, highlight in jsdom
         fixtures/            rescript-tools output samples
       fixtures/probe/        the probe package the fixtures come from
@@ -166,9 +171,12 @@ and viewer and are the unit under test.
 
     type bundle = {
       version: int,                   bundle format, starts at 1
-      package: string,                "xote"
+      package: string,                npm name, "xote"
+      packageVersion: string,         from package.json
+      description: string,            one line, from package.json
       namespace: option<string>,      "Xote"
       title: string,
+      hub: option<string>,            link back to the package index
       repo: option<{url: string, ref: string, dir: string}>,
       generatedAt: string,
       modules: array<module_>,        top level file modules
@@ -271,11 +279,39 @@ Source links:
 
     {repo.url}/blob/{repo.ref}/{repo.dir}{source.file}#L{line}
 
+## 6b. The package index (`src/cli/Hub.res`)
+
+`resdocs hub --out <dir>` treats every immediate subdirectory of
+`<dir>` that holds a `resdocs.json` as one package, and writes
+`index.html` and `logo.svg` at the root. Each card shows the
+package's npm name, version, description and its module and item
+counts, all read from the bundle, and links to the subdirectory. The
+page is plain HTML from `src/cli/templates/hub.html` with the
+palette inlined and no JavaScript, because it only links onward.
+
+A package site knows about its index through `bundle.hub`, which
+`--hub <url>` sets. The header mark links there when it is set and
+to the package home otherwise, so a standalone site stays
+self-contained.
+
+Layout consequences of the hub idea:
+
+- The header carries two identities: the product mark on the left,
+  then the documented package with its version. The package name
+  links to its own landing page.
+- `/` is a package landing page (`PackageHome.res`) rather than a
+  bare module list: name, version, description, npm and repository
+  links, an install line, and a card per module with item counts.
+  That is the page a reader lands on from the index.
+- The sidebar lists only modules, under a heading, so it stays the
+  within-package navigator.
+
 ## 7. GitHub Action (`action.yml`)
 
 Composite action. It builds resdocs from `github.action_path`, so
 nothing has to be published to npm, installs the project when it
-has no `node_modules`, runs `resdocs build`, and with `deploy: true`
+has no `node_modules`, runs `resdocs build` (or `resdocs hub` with
+`command: hub`), and with `deploy: true`
 uploads with `actions/upload-pages-artifact@v5` and deploys with
 `actions/deploy-pages@v5`. Defaults: `base` is `/<repo name>/`,
 `repo` the current repository, `ref` the built commit. The action

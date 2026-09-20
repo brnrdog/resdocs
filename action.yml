@@ -8,6 +8,11 @@ branding:
   color: purple
 
 inputs:
+  command:
+    description: >-
+      "build" documents one package. "hub" writes an index page over a
+      directory that already holds one built package per subdirectory.
+    default: build
   project:
     description: Path to the ReScript package (the directory with rescript.json).
     default: "."
@@ -26,8 +31,16 @@ inputs:
   dir:
     description: Package directory inside the repository, for monorepos.
     default: ""
+  hub:
+    description: >-
+      Link back to the package index this site belongs to, for sites
+      that are part of a multi-package hub.
+    default: ""
   title:
     description: Site title. Defaults to the package name.
+    default: ""
+  tagline:
+    description: One line under the heading, for the hub command.
     default: ""
   exclude:
     description: Comma separated module name patterns to skip, such as Runtime*.
@@ -59,6 +72,7 @@ runs:
         npm run build
 
     - name: Install project dependencies
+      if: inputs.command == 'build'
       shell: bash
       run: |
         cd "${{ inputs.project }}"
@@ -75,15 +89,22 @@ runs:
       run: |
         base="$RESDOCS_BASE"
         if [ -z "$base" ]; then base="/${GITHUB_REPOSITORY#*/}/"; fi
-        repo="$RESDOCS_REPO"
-        if [ -z "$repo" ]; then repo="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"; fi
-        ref="$RESDOCS_REF"
-        if [ -z "$ref" ]; then ref="$GITHUB_SHA"; fi
-        args=(build --project "${{ inputs.project }}" --out "${{ inputs.out }}"
-              --base "$base" --repo "$repo" --ref "$ref")
-        if [ -n "${{ inputs.dir }}" ]; then args+=(--dir "${{ inputs.dir }}"); fi
-        if [ -n "${{ inputs.title }}" ]; then args+=(--title "${{ inputs.title }}"); fi
-        if [ -n "${{ inputs.exclude }}" ]; then args+=(--exclude "${{ inputs.exclude }}"); fi
+        if [ "${{ inputs.command }}" = "hub" ]; then
+          args=(hub --out "${{ inputs.out }}" --base "$base")
+          if [ -n "${{ inputs.title }}" ]; then args+=(--title "${{ inputs.title }}"); fi
+          if [ -n "${{ inputs.tagline }}" ]; then args+=(--tagline "${{ inputs.tagline }}"); fi
+        else
+          repo="$RESDOCS_REPO"
+          if [ -z "$repo" ]; then repo="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"; fi
+          ref="$RESDOCS_REF"
+          if [ -z "$ref" ]; then ref="$GITHUB_SHA"; fi
+          args=(build --project "${{ inputs.project }}" --out "${{ inputs.out }}"
+                --base "$base" --repo "$repo" --ref "$ref")
+          if [ -n "${{ inputs.dir }}" ]; then args+=(--dir "${{ inputs.dir }}"); fi
+          if [ -n "${{ inputs.hub }}" ]; then args+=(--hub "${{ inputs.hub }}"); fi
+          if [ -n "${{ inputs.title }}" ]; then args+=(--title "${{ inputs.title }}"); fi
+          if [ -n "${{ inputs.exclude }}" ]; then args+=(--exclude "${{ inputs.exclude }}"); fi
+        fi
         node "${{ github.action_path }}/bin/resdocs.mjs" "${args[@]}"
 
     - if: inputs.deploy == 'true'

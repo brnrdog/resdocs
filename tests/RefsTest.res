@@ -9,7 +9,7 @@ let modules = () =>
 let itemIn = (modules: array<Bundle.module_>, moduleId, name) =>
   modules
   ->Array.flatMap(m => Bundle.allModules({
-    version: 1, package: "", namespace: None, title: "", repo: None, generatedAt: "", modules: [m],
+    version: 1, package: "", packageVersion: "", description: "", namespace: None, title: "", hub: None, repo: None, generatedAt: "", modules: [m],
   }))
   ->Array.find(m => m.id == moduleId)
   ->Option.flatMap(m =>

@@ -91,13 +91,34 @@ let normalizeRepoUrl = (raw: string): string => {
   s->String.endsWith("/") ? s->String.slice(~start=0, ~end=String.length(s) - 1) : s
 }
 
-let repository = (dir: string): option<repository> => {
+let packageJson = (dir: string): option<Dict.t<JSON.t>> => {
   let file = Node.join([dir, "package.json"])
-  if !Node.existsSync(file) {
-    None
-  } else {
-    JSON.parseOrThrow(Node.readFileSync(file))
-    ->JSON.Decode.object
+  Node.existsSync(file) ? JSON.parseOrThrow(Node.readFileSync(file))->JSON.Decode.object : None
+}
+
+type packageInfo = {npmName: string, version: string, description: string}
+
+/* A registry can generate a description out of a README, which comes
+   back as a wall of HTML. Only a short plain line is usable as a
+   tagline. */
+let usableDescription = (text: string): string => {
+  let line = text->String.trim
+  String.length(line) > 300 || line->String.includes("<") ? "" : line
+}
+
+let packageInfo = (dir: string): packageInfo => {
+  let str = key =>
+    packageJson(dir)->Option.flatMap(o => o->Dict.get(key))->Option.flatMap(JSON.Decode.string)
+  {
+    npmName: str("name")->Option.getOr(""),
+    version: str("version")->Option.getOr(""),
+    description: str("description")->Option.mapOr("", usableDescription),
+  }
+}
+
+let repository = (dir: string): option<repository> => {
+  {
+    packageJson(dir)
     ->Option.flatMap(o => o->Dict.get("repository"))
     ->Option.flatMap(repo =>
       switch repo {

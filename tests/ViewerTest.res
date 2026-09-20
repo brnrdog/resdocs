@@ -44,8 +44,11 @@ let item = (~signature, ~refs): Bundle.item => {
 let bundleWith = (modules): Bundle.bundle => {
   version: 1,
   package: "probe",
+  packageVersion: "",
+  description: "",
   namespace: None,
   title: "probe",
+  hub: None,
   repo: None,
   generatedAt: "",
   modules,

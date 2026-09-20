@@ -146,8 +146,11 @@ let suite = Suite.make(
       let bundle: Bundle.bundle = {
         version: Bundle.version,
         package: "probe",
+        packageVersion: "",
+        description: "",
         namespace: None,
         title: "probe",
+        hub: None,
         repo: None,
         generatedAt: "now",
         modules: Refs.apply([probe()]),
@@ -175,8 +178,11 @@ let suite = Suite.make(
       let bundle: Bundle.bundle = {
         version: 1,
         package: "p",
+        packageVersion: "",
+        description: "",
         namespace: None,
         title: "p",
+        hub: None,
         repo: Some({url: "https://github.com/o/r", ref: "main", dir: "packages/p"}),
         generatedAt: "",
         modules: [],
