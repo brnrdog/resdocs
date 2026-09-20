@@ -1,6 +1,6 @@
 {
   "name": "resdocs",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "dependencies": {
@@ -20,6 +20,31 @@
   "scripts": {
     "res:build": "rescript build",
     "res:clean": "rescript clean",
-    "test": "rescript build && zekr --dir tests"
+    "build": "rescript build && vite build",
+    "dev": "rescript build && vite",
+    "dev:bundle": "node bin/resdocs.mjs build --project node_modules/xote --out public --bundle-only --exclude Runtime*",
+    "test": "rescript build && zekr",
+    "bench": "node bench/bench.mjs",
+    "docs:xote": "node bin/resdocs.mjs build --project node_modules/xote --out docs-site/xote --base /xote/ --exclude Runtime*",
+    "docs:signals": "node bin/resdocs.mjs build --project node_modules/rescript-signals --out docs-site/rescript-signals --base /rescript-signals/",
+    "prepare": "npm run build"
+  },
+  "bin": {
+    "resdocs": "bin/resdocs.mjs"
+  },
+  "files": [
+    "bin",
+    "src",
+    "dist/viewer",
+    "rescript.json",
+    "index.html",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brnrdog/resdocs.git"
+  },
+  "engines": {
+    "node": ">=20.11"
   }
 }

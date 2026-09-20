@@ -3,3 +3,6 @@ lib/
 dist/
 *.res.mjs
 .DS_Store
+.bench/
+public/
+docs-site/

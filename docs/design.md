@@ -11,8 +11,9 @@ breaks both at compile time.
     resdocs/
       package.json           bin: resdocs, scripts: build, test, bench
       rescript.json          sources: src, tests; jsx XoteJSX; ppx
-      vite.config.mjs        root: viewer/, base from env
+      vite.config.mjs        base placeholder, outDir dist/viewer
       index.html             Vite entry, mounts the SPA
+      bin/resdocs.mjs        CLI entry
       action.yml             reusable GitHub Action (composite)
       README.md
       docs/
@@ -27,36 +28,41 @@ breaks both at compile time.
           Path.res           module path helpers, id and anchor rules
           Refs.res           type reference resolution
           Search.res         index build, query, ranking
+          SigTokens.res      signature tokenizer, shared with viewer
         cli/
           Cli.res            entry: parse args, run pipeline, write
           Project.res        read rescript.json, list source files
-          Tools.res          locate and run rescript-tools.exe
-          NodeBindings.res   fs, path, child_process externals
+          Tools.res          locate and run rescript-tools
+          Node.res           fs, path, child_process externals
+          helpers.mjs        binary lookup, MDX compile, copy
         viewer/
-          Main.res           mount, Router.init, theme init
-          Store.res          bundle signal, route derived signals
-          Markdown.res       mdast bindings and node renderer
-          Signature.res      signature tokenizer with type links
+          Main.res           Router.init, fetch, document effects
+          Store.res          signals and computeds, see section 5
+          Browser.res        DOM externals beyond xote
+          Markdown.res       runs precompiled MDX through Xote.Mdx
+          Signature.res      signature with type links
+          Highlight.res      ReScript syntax highlighting
           components/
-            App.res          layout shell, routes
-            Sidebar.res      module tree, View.For over nested nodes
-            ModulePage.res   sections: types, values, submodules
-            ItemCard.res     one type or value, anchored
-            Search.res       input, results, keyboard navigation
+            App.res          layout shell, page switch
+            Sidebar.res      module tree, View.For over modules
+            SidebarEntry.res one top level module and its subtree
+            ModulePage.res   current module or not found
+            ModuleView.res   types, values, submodules, item cards
+            Home.res         package overview
+            SearchBox.res    input, results, keyboard navigation
             ThemeToggle.res
           styles.css
       tests/
-        Normalize.test.res   Zekr, fixture driven
-        Search.test.res      Zekr, ranking assertions
-        Refs.test.res
-        Markdown.test.res
-        fixtures/
-          probe/             the probe package and its expected JSON
+        NormalizeTest.res    Zekr, fixture driven
+        SearchTest.res       Zekr, ranking assertions
+        RefsTest.res
+        SigTokensTest.res
+        ViewerTest.res       markdown, signature, highlight in jsdom
+        fixtures/            rescript-tools output samples
+      fixtures/probe/        the probe package the fixtures come from
       bench/
         bench.mjs            Playwright: search latency, page render
-      examples/
-        xote/                dogfood config for xote
-        rescript-signals/    dogfood config for rescript-signals
+        serve.mjs            static server with Pages-style 404
       .github/workflows/
         ci.yml               build, test, bench on the xote bundle
         docs.yml             dogfood: build both sites, deploy Pages
@@ -65,10 +71,12 @@ Notes on the split:
 
 - `src/core` compiles to ESM that runs in both Node and the browser.
   It must not reference `Dom` or `process`.
-- `src/cli` is Node only. It never imports xote.
+- `src/cli` is Node only. Its one use of xote is running each
+  compiled docstring once, to reject MDX that would fail at render.
 - `src/viewer` is browser only. It reads the bundle over `fetch`.
-- Tests live in `tests/` with the `.test.res` suffix so `zekr`
-  discovers them. `rescript.json` marks `tests` as `type: dev`.
+- Tests live in `tests/` with a `Test.res` suffix (`zekr.json` sets
+  the pattern; a `.test.res` name would shadow the module under
+  test). `rescript.json` marks `tests` as `type: dev`.
 
 ## 2. CLI behaviour
 
@@ -87,11 +95,14 @@ Notes on the split:
 5. Write `<out>/resdocs.json` (the bundle) and copy the built viewer
    next to it, plus `404.html`.
 
-Config can also come from `resdocs.json` in the project root so the
-Action needs no arguments:
+Config can also come from `resdocs.config.json` in the project root
+so the Action needs no arguments:
 
     {"repo": "https://github.com/brnrdog/xote", "ref": "main",
      "dir": "", "exclude": ["Runtime*"], "title": "xote"}
+
+The repository URL and monorepo directory default to `repository`
+in `package.json`.
 
 ## 3. Bundle data model (`src/core/Bundle.res`)
 
@@ -105,6 +116,7 @@ and viewer and are the unit under test.
       signature: string,
       optional: bool,
       doc: string,                    docstrings joined by "\n\n"
+      docCode: option<string>,        precompiled MDX function body
       deprecated: option<string>,
     }
 
@@ -112,6 +124,7 @@ and viewer and are the unit under test.
       name: string,
       signature: string,
       doc: string,
+      docCode: option<string>,
       deprecated: option<string>,
       fields: array<field>,           inline record payload, else []
     }
@@ -121,6 +134,8 @@ and viewer and are the unit under test.
       | Record(array<field>)
       | Variant(array<constructor>)
 
+    type typeRef = {name: string, id: string}
+
     type item = {
       id: string,                     "Xote.View.attrValue"
       anchor: string,                 "type-attrValue" / "value-attr"
@@ -128,17 +143,20 @@ and viewer and are the unit under test.
       name: string,
       signature: string,              verbatim from the tool
       doc: string,
+      docCode: option<string>,
       deprecated: option<string>,
       source: source,
       detail: typeDetail,             Abstract for values
-      refs: array<string>,            resolved ids the signature names
+      refs: array<typeRef>,           name in signature -> item id
     }
 
     type rec module_ = {
       id: string,                     "Xote.View", "Xote.View.For"
       name: string,                   "View", "For"
       kind: moduleKind,               Module | ModuleType | Alias
+      anchor: string,                 "top" or "module-For"
       doc: string,
+      docCode: option<string>,
       deprecated: option<string>,
       source: source,
       types: array<item>,
@@ -170,7 +188,12 @@ Design choices:
   text. `Stdlib.*` and `Dom.*` stay plain in the MVP.
 - Types and values are split into two arrays because the page groups
   them that way. Source order is preserved inside each group.
-- `doc` is raw markdown. Rendering happens in the viewer.
+- `doc` is raw markdown and `docCode` is the same text compiled to
+  an MDX function body by the CLI (`@mdx-js/mdx` with GFM). The
+  viewer runs the body against xote's JSX runtime and renders it
+  through `Xote.Mdx`, so docstrings become xote nodes without any
+  HTML injection. A docstring that is not valid MDX has no
+  `docCode` and is shown as plain text.
 - Everything is a plain record with only strings, ints, options and
   arrays, so the JSON codec is direct and the bundle is small (the
   xote bundle is expected around 200 KB before compression).
@@ -222,10 +245,13 @@ Rules the components follow:
   in the search box reorders result rows instead of rebuilding them.
 - Components are `@xote.component`; inline reads become leaves.
 - `View.tracked` is limited to small conditional regions such as
-  the empty state of the results list.
+  the loading and not found states.
 - The only `Effect.run` calls are for things the DOM owns: focusing
-  the search input on `/`, scrolling the selected result into view,
-  and persisting the theme.
+  the search input on `/`, scrolling the selected result or a deep
+  link target into view, the document title and the theme.
+- `Router.routes` reads the whole location signal, so it would
+  rebuild the page on a hash change. The page switch reads
+  `pathname`, a computed with an equality cutoff, instead.
 
 ## 6. Routes and deep links
 
@@ -247,12 +273,13 @@ Source links:
 
 ## 7. GitHub Action (`action.yml`)
 
-Composite action with inputs `project` (default `.`), `repo`
-(default `github.repository` URL), `ref` (default `github.sha`),
-`base` (default `/<repo name>/`). Steps: setup Node, install, run
-`resdocs build`, upload with `actions/upload-pages-artifact`, deploy
-with `actions/deploy-pages`. Exact action versions are checked at
-implementation time, not assumed.
+Composite action. It builds resdocs from `github.action_path`, so
+nothing has to be published to npm, installs the project when it
+has no `node_modules`, runs `resdocs build`, and with `deploy: true`
+uploads with `actions/upload-pages-artifact@v5` and deploys with
+`actions/deploy-pages@v5`. Defaults: `base` is `/<repo name>/`,
+`repo` the current repository, `ref` the built commit. The action
+versions were read from the actions' tags at implementation time.
 
 ## 8. Performance harness (`bench/bench.mjs`)
 
@@ -268,16 +295,19 @@ Numbers go into the README with the machine they were taken on.
 
 ## 9. Test plan
 
-- `Normalize.test.res`: probe fixture JSON in, bundle out, asserted
+- `NormalizeTest.res`: probe fixture JSON in, bundle out, asserted
   field by field (ids, anchors, optional fields, inline records,
   deprecated, nested module paths, alias handling).
-- `Refs.test.res`: local, enclosing and qualified resolution, and
+- `RefsTest.res`: local, enclosing and qualified resolution, and
   an unresolvable name staying plain.
-- `Search.test.res`: each ranking tier, tie breaking, deprecated
+- `SigTokensTest.res`: labels, fields, type variables, keywords.
+- `SearchTest.res`: each ranking tier, tie breaking, deprecated
   penalty, cap, and empty query.
-- `Markdown.test.res`: headings, paragraphs, lists, inline code,
-  fenced code, links, rendered through xote into jsdom via
-  `Zekr.DomTesting`.
+- `ViewerTest.res`: MDX docstrings with GFM and highlighting, plain
+  text fallback, linked signatures and the highlighter, rendered
+  through xote into jsdom via `Zekr.DomTesting`.
+- `bench/smoke.mjs`: end to end in headless Chromium on the xote
+  site (sidebar, module page, search keys, cold deep link, theme).
 
 ## 10. Implementation order
 

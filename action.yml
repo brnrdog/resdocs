@@ -1,0 +1,99 @@
+name: resdocs
+description: >-
+  Build HexDocs-style documentation for a ReScript package and publish
+  it to GitHub Pages.
+author: brnrdog
+branding:
+  icon: book-open
+  color: purple
+
+inputs:
+  project:
+    description: Path to the ReScript package (the directory with rescript.json).
+    default: "."
+  out:
+    description: Directory the site is written to.
+    default: docs-site
+  base:
+    description: URL path the site is served from. Defaults to /<repository name>/.
+    default: ""
+  repo:
+    description: GitHub repository URL for source links. Defaults to this repository.
+    default: ""
+  ref:
+    description: Git ref for source links. Defaults to the commit being built.
+    default: ""
+  dir:
+    description: Package directory inside the repository, for monorepos.
+    default: ""
+  title:
+    description: Site title. Defaults to the package name.
+    default: ""
+  exclude:
+    description: Comma separated module name patterns to skip, such as Runtime*.
+    default: ""
+  deploy:
+    description: Upload the site and deploy it to GitHub Pages.
+    default: "true"
+  node-version:
+    description: Node.js version.
+    default: "22"
+
+outputs:
+  page_url:
+    description: URL of the deployed site, when deploy is true.
+    value: ${{ steps.deployment.outputs.page_url }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v7
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Install resdocs
+      shell: bash
+      run: |
+        cd "${{ github.action_path }}"
+        npm ci
+        npm run build
+
+    - name: Install project dependencies
+      shell: bash
+      run: |
+        cd "${{ inputs.project }}"
+        if [ ! -d node_modules ]; then
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+        fi
+
+    - name: Build documentation
+      shell: bash
+      env:
+        RESDOCS_BASE: ${{ inputs.base }}
+        RESDOCS_REPO: ${{ inputs.repo }}
+        RESDOCS_REF: ${{ inputs.ref }}
+      run: |
+        base="$RESDOCS_BASE"
+        if [ -z "$base" ]; then base="/${GITHUB_REPOSITORY#*/}/"; fi
+        repo="$RESDOCS_REPO"
+        if [ -z "$repo" ]; then repo="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"; fi
+        ref="$RESDOCS_REF"
+        if [ -z "$ref" ]; then ref="$GITHUB_SHA"; fi
+        args=(build --project "${{ inputs.project }}" --out "${{ inputs.out }}"
+              --base "$base" --repo "$repo" --ref "$ref")
+        if [ -n "${{ inputs.dir }}" ]; then args+=(--dir "${{ inputs.dir }}"); fi
+        if [ -n "${{ inputs.title }}" ]; then args+=(--title "${{ inputs.title }}"); fi
+        if [ -n "${{ inputs.exclude }}" ]; then args+=(--exclude "${{ inputs.exclude }}"); fi
+        node "${{ github.action_path }}/bin/resdocs.mjs" "${args[@]}"
+
+    - if: inputs.deploy == 'true'
+      uses: actions/configure-pages@v6
+
+    - if: inputs.deploy == 'true'
+      uses: actions/upload-pages-artifact@v5
+      with:
+        path: ${{ inputs.out }}
+
+    - if: inputs.deploy == 'true'
+      id: deployment
+      uses: actions/deploy-pages@v5
