@@ -20,6 +20,9 @@ let routerBase: string = base == "/" ? "/" : base->String.slice(~start=0, ~end=S
 
 let bundle: Signal.t<option<Bundle.bundle>> = Signal.make(None, ~name="bundle")
 
+/* Set when the bundle cannot be fetched or read; the page says why. */
+let loadError: Signal.t<option<string>> = Signal.make(None, ~name="loadError")
+
 let loaded = Computed.make(() => Signal.get(bundle)->Option.isSome, ~equals=(a, b) => a == b)
 
 let title = Computed.make(

@@ -142,6 +142,26 @@ let suite = Suite.make(
       let element = findValue(m, "element")->Option.getOrThrow
       Assert.isTrue(element.signature->String.startsWith("let element: (\n  string,\n  ~attrs:"))
     }),
+    Test.make("the viewer only decodes its own bundle format", () => {
+      let current = `{"version":${Int.toString(Bundle.version)},"modules":[]}`
+      let isError = r =>
+        switch r {
+        | Error(_) => true
+        | Ok(_) => false
+        }
+      Assert.combineResults([
+        Assert.isFalse(isError(Bundle.decode(current))),
+        Assert.equal(
+          Bundle.decode(`{"version":1,"modules":[]}`),
+          Error(
+            "resdocs.json uses bundle format 1, but this viewer reads format 2. Rebuild the site with a single version of resdocs.",
+          ),
+        ),
+        Assert.isTrue(isError(Bundle.decode(`{"modules":[]}`))),
+        Assert.isTrue(isError(Bundle.decode("{nope"))),
+        Assert.isTrue(isError(Bundle.decode("[]"))),
+      ])
+    }),
     Test.make("bundle round trips through JSON", () => {
       let bundle: Bundle.bundle = {
         version: Bundle.version,
