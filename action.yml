@@ -66,46 +66,65 @@ runs:
 
     - name: Install resdocs
       shell: bash
+      env:
+        RESDOCS_ACTION_PATH: ${{ github.action_path }}
       run: |
-        cd "${{ github.action_path }}"
+        cd "$RESDOCS_ACTION_PATH"
         npm ci
         npm run build
 
     - name: Install project dependencies
       if: inputs.command == 'build'
       shell: bash
+      env:
+        RESDOCS_PROJECT: ${{ inputs.project }}
       run: |
-        cd "${{ inputs.project }}"
+        cd "$RESDOCS_PROJECT"
         if [ ! -d node_modules ]; then
           if [ -f package-lock.json ]; then npm ci; else npm install; fi
         fi
 
+    # Inputs reach the script only through the environment, never
+    # through expressions inside `run`, so a quote or $( in a title cannot
+    # become shell code.
     - name: Build documentation
       shell: bash
       env:
+        RESDOCS_COMMAND: ${{ inputs.command }}
+        RESDOCS_PROJECT: ${{ inputs.project }}
+        RESDOCS_OUT: ${{ inputs.out }}
         RESDOCS_BASE: ${{ inputs.base }}
         RESDOCS_REPO: ${{ inputs.repo }}
         RESDOCS_REF: ${{ inputs.ref }}
+        RESDOCS_DIR: ${{ inputs.dir }}
+        RESDOCS_HUB: ${{ inputs.hub }}
+        RESDOCS_TITLE: ${{ inputs.title }}
+        RESDOCS_TAGLINE: ${{ inputs.tagline }}
+        RESDOCS_EXCLUDE: ${{ inputs.exclude }}
+        RESDOCS_ACTION_PATH: ${{ github.action_path }}
       run: |
         base="$RESDOCS_BASE"
         if [ -z "$base" ]; then base="/${GITHUB_REPOSITORY#*/}/"; fi
-        if [ "${{ inputs.command }}" = "hub" ]; then
-          args=(hub --out "${{ inputs.out }}" --base "$base")
-          if [ -n "${{ inputs.title }}" ]; then args+=(--title "${{ inputs.title }}"); fi
-          if [ -n "${{ inputs.tagline }}" ]; then args+=(--tagline "${{ inputs.tagline }}"); fi
-        else
+        if [ "$RESDOCS_COMMAND" = "hub" ]; then
+          args=(hub --out "$RESDOCS_OUT" --base "$base")
+          if [ -n "$RESDOCS_TITLE" ]; then args+=(--title "$RESDOCS_TITLE"); fi
+          if [ -n "$RESDOCS_TAGLINE" ]; then args+=(--tagline "$RESDOCS_TAGLINE"); fi
+        elif [ "$RESDOCS_COMMAND" = "build" ]; then
           repo="$RESDOCS_REPO"
           if [ -z "$repo" ]; then repo="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"; fi
           ref="$RESDOCS_REF"
           if [ -z "$ref" ]; then ref="$GITHUB_SHA"; fi
-          args=(build --project "${{ inputs.project }}" --out "${{ inputs.out }}"
+          args=(build --project "$RESDOCS_PROJECT" --out "$RESDOCS_OUT"
                 --base "$base" --repo "$repo" --ref "$ref")
-          if [ -n "${{ inputs.dir }}" ]; then args+=(--dir "${{ inputs.dir }}"); fi
-          if [ -n "${{ inputs.hub }}" ]; then args+=(--hub "${{ inputs.hub }}"); fi
-          if [ -n "${{ inputs.title }}" ]; then args+=(--title "${{ inputs.title }}"); fi
-          if [ -n "${{ inputs.exclude }}" ]; then args+=(--exclude "${{ inputs.exclude }}"); fi
+          if [ -n "$RESDOCS_DIR" ]; then args+=(--dir "$RESDOCS_DIR"); fi
+          if [ -n "$RESDOCS_HUB" ]; then args+=(--hub "$RESDOCS_HUB"); fi
+          if [ -n "$RESDOCS_TITLE" ]; then args+=(--title "$RESDOCS_TITLE"); fi
+          if [ -n "$RESDOCS_EXCLUDE" ]; then args+=(--exclude "$RESDOCS_EXCLUDE"); fi
+        else
+          echo "resdocs: unknown command: $RESDOCS_COMMAND (expected build or hub)" >&2
+          exit 2
         fi
-        node "${{ github.action_path }}/bin/resdocs.mjs" "${args[@]}"
+        node "$RESDOCS_ACTION_PATH/bin/resdocs.mjs" "${args[@]}"
 
     - if: inputs.deploy == 'true'
       uses: actions/configure-pages@v6
