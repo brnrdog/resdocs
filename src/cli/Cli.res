@@ -17,6 +17,7 @@ type options = {
   tagline: option<string>,
   exclude: array<string>,
   bundleOnly: bool,
+  strict: bool,
   command: command,
 }
 
@@ -32,6 +33,7 @@ let defaults = {
   tagline: None,
   exclude: [],
   bundleOnly: false,
+  strict: false,
   command: Build,
 }
 
@@ -52,6 +54,7 @@ API docs of many ReScript packages.
   --title <text>     site title (default: package name)
   --exclude <globs>  comma separated module patterns, e.g. Runtime*
   --bundle-only      write resdocs.json and skip the viewer
+  --strict           fail when a public item has no docstring
 
 hub options:
 
@@ -92,6 +95,7 @@ let parseArgs = (argv: array<string>): result<options, string> => {
     | "--exclude" =>
       opts := {...opts.contents, exclude: next(arg)->String.split(",")->Array.map(String.trim)}
     | "--bundle-only" => opts := {...opts.contents, bundleOnly: true}
+    | "--strict" => opts := {...opts.contents, strict: true}
     | "-h" | "--help" => error := Some(usage)
     | other => error := Some("unknown argument " ++ other ++ "\n\n" ++ usage)
     }
@@ -127,6 +131,8 @@ let withConfigFile = (opts: options, projectDir: string): options => {
         hub: orConfig(opts.hub, "hub"),
         title: orConfig(opts.title, "title"),
         tagline: orConfig(opts.tagline, "tagline"),
+        strict: opts.strict ||
+          o->Dict.get("strict")->Option.flatMap(JSON.Decode.bool)->Option.getOr(false),
         exclude: Array.length(opts.exclude) > 0
           ? opts.exclude
           : o
@@ -229,6 +235,73 @@ let writeSite = (~out: string, ~base: string, ~title: string): result<unit, stri
   }
 }
 
+/* Everything after the tool ran: the bundle and, unless
+   --bundle-only, the site around it. */
+let writeOutput = (opts: options, ~project: Project.t, ~projectDir: string, docs): int => {
+  let namespace = docs->Array.get(0)->Option.flatMap(Normalize.namespaceOf)
+  let modules = Refs.apply(docs->Array.map(doc => Normalize.ofDoc(doc)))
+  let modules = modules->Array.map(parseModule)
+  let missing = modules->Array.reduce(0, (acc, m) => {
+    let (missing, total) = undocumented(m)
+    if missing > 0 {
+      Node.warn(
+        `resdocs: ${m.id}: ${Int.toString(missing)} of ${Int.toString(total)} items have no docstring`,
+      )
+    }
+    acc + missing
+  })
+  if opts.strict && missing > 0 {
+    fail(`--strict: ${Int.toString(missing)} items have no docstring`)
+  } else {
+    let repository = Project.repository(projectDir)
+    let repoUrl = switch opts.repo {
+    | Some(url) => Some(Project.normalizeRepoUrl(url))
+    | None => repository->Option.map(r => r.url)
+    }
+    let repo: option<Bundle.repo> = repoUrl->Option.map(url => {
+      Bundle.url,
+      ref: opts.ref->Option.getOr("main"),
+      dir: switch opts.dir {
+      | Some(dir) => dir
+      | None => repository->Option.mapOr("", r => r.dir)
+      },
+    })
+    let title = opts.title->Option.getOr(project.name)
+    let info = Project.packageInfo(projectDir)
+    let bundle: Bundle.bundle = {
+      version: Bundle.version,
+      package: info.npmName == "" ? project.name : info.npmName,
+      packageVersion: info.version,
+      description: info.description,
+      namespace,
+      title,
+      hub: opts.hub,
+      repo,
+      generatedAt: Node.nowIso(),
+      modules,
+    }
+    let out = Node.resolve(Node.cwd(), opts.out)
+    Node.mkdirp(out)
+    Node.writeFileSync(Node.join([out, "resdocs.json"]), Bundle.stringify(bundle))
+    Node.log(
+      `resdocs: ${Int.toString(Array.length(modules))} modules written to ${Node.relative(
+          Node.cwd(),
+          out,
+        )}/resdocs.json`,
+    )
+    if opts.bundleOnly {
+      0
+    } else {
+      switch writeSite(~out, ~base=normalizeBase(opts.base->Option.getOr("/")), ~title) {
+      | Ok() =>
+        Node.log("resdocs: site written to " ++ Node.relative(Node.cwd(), out))
+        0
+      | Error(e) => fail(e)
+      }
+    }
+  }
+}
+
 let build = async (opts: options): int => {
   let projectDir = Node.resolve(Node.cwd(), opts.project)
   let opts = withConfigFile(opts, projectDir)
@@ -238,13 +311,10 @@ let build = async (opts: options): int => {
     switch await Tools.locate(projectDir) {
     | Error(e) => fail(e)
     | Ok(tools) =>
-      let built = Tools.isBuilt(projectDir)
-        ? Ok()
-        : {
-            Node.log("resdocs: compiling " ++ project.name)
-            Tools.build(tools)
-          }
-      switch built {
+      /* Always compile: the build is incremental, and documenting a
+         stale lib/bs silently describes old code or misses new files. */
+      Node.log("resdocs: compiling " ++ project.name)
+      switch Tools.build(tools) {
       | Error(e) => fail(e)
       | Ok() =>
         let files =
@@ -252,70 +322,35 @@ let build = async (opts: options): int => {
             let name = Project.moduleNameOf(file)
             !(opts.exclude->Array.some(p => Normalize.matchesPattern(p, name)))
           })
-        let docs = files->Array.filterMap(file =>
-          switch Tools.doc(tools, file) {
-          | Ok(json) => Some(Docgen.parse(json))
-          | Error(e) =>
-            Node.warn("resdocs: skipping " ++ Node.relative(projectDir, file) ++ ": " ++ e)
-            None
+        let results = files->Array.map(file => (file, Tools.doc(tools, file)))
+        let failures = results->Array.filterMap(((file, result)) =>
+          switch result {
+          | Error(e) => Some((file, e))
+          | Ok(_) => None
           }
         )
-        let namespace = docs->Array.get(0)->Option.flatMap(Normalize.namespaceOf)
-        let modules = Refs.apply(docs->Array.map(doc => Normalize.ofDoc(doc)))
-        let modules = modules->Array.map(parseModule)
-        modules->Array.forEach(m => {
-          let (missing, total) = undocumented(m)
-          if missing > 0 {
-            Node.warn(
-              `resdocs: ${m.id}: ${Int.toString(missing)} of ${Int.toString(total)} items have no docstring`,
-            )
-          }
-        })
-        let repository = Project.repository(projectDir)
-        let repoUrl = switch opts.repo {
-        | Some(url) => Some(Project.normalizeRepoUrl(url))
-        | None => repository->Option.map(r => r.url)
-        }
-        let repo: option<Bundle.repo> = repoUrl->Option.map(url => {
-          Bundle.url,
-          ref: opts.ref->Option.getOr("main"),
-          dir: switch opts.dir {
-          | Some(dir) => dir
-          | None => repository->Option.mapOr("", r => r.dir)
-          },
-        })
-        let title = opts.title->Option.getOr(project.name)
-        let info = Project.packageInfo(projectDir)
-        let bundle: Bundle.bundle = {
-          version: Bundle.version,
-          package: info.npmName == "" ? project.name : info.npmName,
-          packageVersion: info.version,
-          description: info.description,
-          namespace,
-          title,
-          hub: opts.hub,
-          repo,
-          generatedAt: Node.nowIso(),
-          modules,
-        }
-        let out = Node.resolve(Node.cwd(), opts.out)
-        Node.mkdirp(out)
-        Node.writeFileSync(Node.join([out, "resdocs.json"]), Bundle.stringify(bundle))
-        Node.log(
-          `resdocs: ${Int.toString(Array.length(modules))} modules written to ${Node.relative(
-              Node.cwd(),
-              out,
-            )}/resdocs.json`,
-        )
-        if opts.bundleOnly {
-          0
+        let count = n => Int.toString(Array.length(n))
+        if Array.length(files) == 0 {
+          fail(
+            "no .res files in the sources of rescript.json" ++
+            (Array.length(opts.exclude) > 0 ? " after --exclude" : ""),
+          )
+        } else if Array.length(failures) > 0 {
+          failures->Array.forEach(((file, e)) =>
+            Node.warn("resdocs: " ++ Node.relative(projectDir, file) ++ ": " ++ e)
+          )
+          fail(
+            `${count(failures)} of ${count(files)} source files could not be documented. ` ++
+            "Fix them, or leave them out with --exclude.",
+          )
         } else {
-          switch writeSite(~out, ~base=normalizeBase(opts.base->Option.getOr("/")), ~title) {
-          | Ok() =>
-            Node.log("resdocs: site written to " ++ Node.relative(Node.cwd(), out))
-            0
-          | Error(e) => fail(e)
-          }
+          let docs = results->Array.filterMap(((_, result)) =>
+            switch result {
+            | Ok(json) => Some(Docgen.parse(json))
+            | Error(_) => None
+            }
+          )
+          writeOutput(opts, ~project, ~projectDir, docs)
         }
       }
     }

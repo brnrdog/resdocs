@@ -81,6 +81,7 @@ repository publishes both packages under one site
 | `dir`          | from `package.json` | package directory, monorepos  |
 | `title`        | package name        | site title                    |
 | `exclude`      |                     | module patterns, `Runtime*`   |
+| `strict`       | `false`             | fail on undocumented items    |
 | `deploy`       | `true`              | upload and deploy to Pages    |
 | `node-version` | `22`                | Node.js version               |
 
@@ -93,7 +94,7 @@ this repository publishes two packages under one Pages site
     resdocs build [--project <dir>] [--out <dir>] [--base <path>]
                   [--repo <url>] [--ref <ref>] [--dir <path>]
                   [--hub <url>] [--title <text>] [--exclude <globs>]
-                  [--bundle-only]
+                  [--bundle-only] [--strict]
 
     resdocs hub [--out <dir>] [--base <path>] [--title <text>]
                 [--tagline <text>]
@@ -108,10 +109,15 @@ The same options can live in `resdocs.config.json` next to
       "exclude": ["Runtime*"]
     }
 
-The CLI compiles the project if `lib/bs` is missing, documents every
-`.res` file in the non-dev sources through the `rescript-tools`
-binary that ships with the project's own `rescript` install, and
-warns about public items without a docstring.
+The CLI compiles the project (incrementally, so this is quick when
+it is already built), documents every `.res` file in the non-dev
+sources through the `rescript-tools` binary that ships with the
+project's own `rescript` install, and warns about public items
+without a docstring. The build fails, and nothing is written, when
+compiling fails, when any source file cannot be documented (leave it
+out with `--exclude`), or when no source files are left. With
+`--strict` (or `"strict": true` in the config file) it also fails on
+public items without a docstring, which suits a library's CI.
 
 ### Writing docstrings and examples
 

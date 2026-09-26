@@ -45,6 +45,9 @@ inputs:
   exclude:
     description: Comma separated module name patterns to skip, such as Runtime*.
     default: ""
+  strict:
+    description: Fail the build when a public item has no docstring.
+    default: "false"
   deploy:
     description: Upload the site and deploy it to GitHub Pages.
     default: "true"
@@ -107,6 +110,7 @@ runs:
         RESDOCS_TITLE: ${{ inputs.title }}
         RESDOCS_TAGLINE: ${{ inputs.tagline }}
         RESDOCS_EXCLUDE: ${{ inputs.exclude }}
+        RESDOCS_STRICT: ${{ inputs.strict }}
         RESDOCS_ACTION_PATH: ${{ github.action_path }}
       run: |
         base="$RESDOCS_BASE"
@@ -126,6 +130,7 @@ runs:
           if [ -n "$RESDOCS_HUB" ]; then args+=(--hub "$RESDOCS_HUB"); fi
           if [ -n "$RESDOCS_TITLE" ]; then args+=(--title "$RESDOCS_TITLE"); fi
           if [ -n "$RESDOCS_EXCLUDE" ]; then args+=(--exclude "$RESDOCS_EXCLUDE"); fi
+          if [ "$RESDOCS_STRICT" = "true" ]; then args+=(--strict); fi
         else
           echo "resdocs: unknown command: $RESDOCS_COMMAND (expected build or hub)" >&2
           exit 2
