@@ -89,6 +89,29 @@ external fromJson: JSON.t => bundle = "%identity"
 
 let parse = (text: string): bundle => JSON.parseOrThrow(text)->fromJson
 
+/* What the viewer reads: the bundle, or a sentence for the reader
+   saying why it cannot be shown. A viewer only renders the format it
+   was built with, so a mismatch is an error rather than a page that
+   fails halfway. */
+let decode = (text: string): result<bundle, string> =>
+  switch JSON.parseOrThrow(text) {
+  | exception _ => Error("resdocs.json is not valid JSON.")
+  | json =>
+    switch json
+    ->JSON.Decode.object
+    ->Option.flatMap(o => o->Dict.get("version"))
+    ->Option.flatMap(JSON.Decode.float) {
+    | Some(v) if v == Int.toFloat(version) => Ok(fromJson(json))
+    | Some(v) =>
+      Error(
+        `resdocs.json uses bundle format ${Float.toString(v)}, but this viewer reads format ${Int.toString(
+            version,
+          )}. Rebuild the site with a single version of resdocs.`,
+      )
+    | None => Error("resdocs.json has no bundle format version.")
+    }
+  }
+
 let stringify = (bundle: bundle): string =>
   JSON.stringifyAny(bundle)->Option.getOr("{}")
 

@@ -42,15 +42,22 @@ Effect.run(() => {
   None
 })
 
-let load = async () => {
-  let response = await Browser.fetch(Store.base ++ "resdocs.json")
-  if !Browser.ok(response) {
-    Console.error("resdocs: could not load resdocs.json, status " ++ Int.toString(Browser.status(response)))
-  } else {
-    let text = await Browser.text(response)
-    Signal.set(Store.bundle, Some(Bundle.parse(text)))
-  }
+let fail = (message: string) => {
+  Console.error("resdocs: " ++ message)
+  Signal.set(Store.loadError, Some(message))
 }
+
+let load = async () =>
+  switch await Browser.fetch(Store.base ++ "resdocs.json") {
+  | exception _ => fail("Could not reach resdocs.json. Check the connection and reload.")
+  | response if !Browser.ok(response) =>
+    fail(`Could not load resdocs.json (HTTP ${Int.toString(Browser.status(response))}).`)
+  | response =>
+    switch Bundle.decode(await Browser.text(response)) {
+    | Ok(bundle) => Signal.set(Store.bundle, Some(bundle))
+    | Error(message) => fail(message)
+    }
+  }
 
 View.mountById(<App />, "app")
 load()->ignore
