@@ -175,6 +175,9 @@ h1 code, h2 code, h3 code { font-size: 1em; color: inherit; }
 }
 
 .sidebar-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
   padding: 0 8px 10px;
   font-size: 11px;
   font-weight: 600;
@@ -225,6 +228,20 @@ h1 code, h2 code, h3 code { font-size: 1em; color: inherit; }
 .nav-sub { color: var(--muted); font-size: 12.5px; }
 .nav-link:hover, .nav-sub:hover { color: var(--link); text-decoration: none; }
 
+.sidebar-section { margin-bottom: 22px; }
+.nav-recent {
+  display: flex;
+  flex-direction: column;
+  padding: 3px 8px;
+  border-left: 2px solid transparent;
+  overflow: hidden;
+}
+.nav-recent:hover { text-decoration: none; }
+.nav-recent:hover .nav-recent-name { color: var(--link); }
+.nav-recent-name { font-family: var(--mono); font-size: 13px; color: var(--ink); }
+.nav-recent-path, .nav-recent-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nav-recent-path { font-size: 11.5px; color: var(--muted); }
+
 /* The one place the brand red does work in the chrome */
 .nav-link[aria-current="page"] {
   color: var(--ink-strong);
@@ -235,11 +252,11 @@ h1 code, h2 code, h3 code { font-size: 1em; color: inherit; }
 
 /* ------------------------------------------------------------ search */
 
-.search { position: relative; flex: 1; max-width: 420px; }
+.search { position: relative; flex: 1; min-width: 0; max-width: 460px; }
 .search-input {
   width: 100%;
   height: 32px;
-  padding: 0 10px;
+  padding: 0 32px 0 10px;
   font: inherit;
   font-size: 14px;
   color: var(--ink);
@@ -247,52 +264,139 @@ h1 code, h2 code, h3 code { font-size: 1em; color: inherit; }
   border: 1px solid var(--border);
 }
 .search-input::placeholder { color: var(--muted); }
-.search-input:focus { outline: none; border-color: var(--muted); }
+.search-input:focus { outline: none; border-color: var(--muted); background: var(--bg); }
+/* The "/" hint, only while the box is idle */
+.search-key {
+  position: absolute;
+  top: 7px;
+  right: 8px;
+  pointer-events: none;
+}
+.search-input:focus ~ .search-key, .search-input:not(:placeholder-shown) ~ .search-key { display: none; }
+
+kbd {
+  display: inline-block;
+  min-width: 18px;
+  padding: 0 4px;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 16px;
+  text-align: center;
+  color: var(--muted);
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
 
 .results {
   position: absolute;
   top: 38px;
   left: 0;
   right: 0;
-  min-width: 420px;
-  max-height: 66vh;
-  overflow-y: auto;
-  margin: 0;
-  padding: 4px;
-  list-style: none;
+  min-width: 460px;
+  display: flex;
+  flex-direction: column;
+  max-height: min(70vh, 560px);
   background: var(--bg);
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
 }
+.results-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.results-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0 4px 4px;
+  list-style: none;
+}
 .result {
   display: grid;
   grid-template-columns: 1fr auto;
-  grid-template-areas: "name kind" "path path" "sig sig";
+  grid-template-areas: "name kind" "path path" "sig sig" "summary summary";
   column-gap: 12px;
   padding: 6px 8px;
   cursor: pointer;
   border-left: 2px solid transparent;
 }
-.result:hover { background: var(--surface); }
 .result[aria-selected="true"] { background: var(--selected); border-left-color: var(--brand); }
 .result-name {
   grid-area: name;
   font-family: var(--mono);
   font-size: 13.5px;
   color: var(--ink-strong);
-}
-.result .badge { grid-area: kind; justify-self: end; align-self: center; }
-.result-path { grid-area: path; font-size: 12px; color: var(--muted); }
-.result-sig {
-  grid-area: sig;
-  font-family: var(--mono);
-  font-size: 12px;
-  color: var(--muted);
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.result-empty { padding: 10px 8px; color: var(--muted); font-size: 14px; }
+.result-name mark {
+  color: inherit;
+  background: none;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: var(--brand);
+  text-underline-offset: 3px;
+}
+.result .badge { grid-area: kind; justify-self: end; align-self: center; }
+.result-path { grid-area: path; font-size: 12px; color: var(--muted); }
+.result-sig, .result-summary {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 12px;
+  color: var(--muted);
+}
+.result-sig { grid-area: sig; font-family: var(--mono); }
+.result-summary { grid-area: summary; color: var(--ink); }
+.results-empty { margin: 0; padding: 4px 12px 12px; color: var(--muted); font-size: 14px; }
+.results-empty code { font-family: var(--mono); font-size: 13px; }
+.results-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  padding: 7px 12px;
+  font-size: 12px;
+  color: var(--muted);
+  border-top: 1px solid var(--border-subtle);
+}
+.results-filters { margin-left: auto; }
+.results-filters code { font-family: var(--mono); font-size: 11.5px; }
+
+.link-button {
+  padding: 0;
+  font: inherit;
+  font-size: 11px;
+  letter-spacing: normal;
+  text-transform: none;
+  font-weight: 400;
+  color: var(--link);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.link-button:hover { text-decoration: underline; }
+
+@media (max-width: 860px) {
+  .header { gap: 12px; padding: 0 12px; }
+  .header-actions .icon-button, .package .version { display: none; }
+  /* The dropdown spans the viewport rather than the narrow input */
+  .results {
+    position: fixed;
+    top: calc(var(--header-height) + 4px);
+    left: 8px;
+    right: 8px;
+    min-width: 0;
+  }
+  .results-filters { margin-left: 0; }
+}
 
 /* ------------------------------------------------------------ content */
 

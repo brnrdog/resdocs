@@ -182,7 +182,9 @@ a `Computed`; components only read.
     module     = Computed(bundle, moduleId)
     query      = Signal<string>
     results    = Computed(index, query)
-    selectedId = Computed(results, selected)
+    recent     = Signal<array<id>>      local storage, per site
+    listed     = Computed(results, recent, query)
+    selectedId = Computed(listed, selected)
     theme      = Signal<theme>
 
 Two cutoffs matter. `pathname` uses `~equals` so a hash-only change

@@ -96,6 +96,43 @@ let suite = Suite.make(
     Test.make("no match returns nothing", () => {
       Assert.equal(names("zzzzzz"), [])
     }),
+    Test.make("kind prefixes filter results", () => {
+      let kinds = q => Search.search(index(), q)->Array.map(e => e.kind)
+      Assert.combineResults([
+        Assert.equal(Search.parseQuery("  Type: Node "), {text: "node", kind: Some(Search.Type)}),
+        Assert.equal(Search.parseQuery("v:make"), {text: "make", kind: Some(Search.Value)}),
+        Assert.equal(Search.parseQuery("make"), {text: "make", kind: None}),
+        Assert.isTrue(kinds("type: node")->Array.every(k => k == Search.Type)),
+        Assert.isTrue(Array.length(kinds("type: node")) > 0),
+        Assert.isTrue(kinds("module:")->Array.every(k => k == Search.Module)),
+        Assert.isTrue(Array.length(kinds("module:")) > 3),
+        Assert.equal(first("value: run"), Some("Probe.run")),
+      ])
+    }),
+    Test.make("docstrings match below names, with a one-line summary", () => {
+      let run = index()->Array.find(e => e.id == "Probe.run")
+      Assert.combineResults([
+        Assert.equal(first("a variant"), Some("Probe.shape")),
+        Assert.equal(run->Option.map(e => e.summary), Some("Doc for run.")),
+        /* A name match outranks a docstring match. */
+        Assert.equal(first("run"), Some("Probe.run")),
+      ])
+    }),
+    Test.make("several words match across path, signature and docs", () =>
+      Assert.equal(first("probe inner type"), Some("Probe.Inner.t"))
+    ),
+    Test.make("highlight marks the matched substring or initials", () => {
+      let marks = (name, q) =>
+        Search.highlight(name, q)->Array.map(s => s.matched ? "[" ++ s.text ++ "]" : s.text)->Array.join("")
+      Assert.combineResults([
+        Assert.equal(marks("eachWithKey", "with"), "each[With]Key"),
+        Assert.equal(marks("eachWithKey", "ewk"), "[e]ach[W]ith[K]ey"),
+        Assert.equal(marks("to_string", "ts"), "[t]o_[s]tring"),
+        Assert.equal(marks("make", "value: ma"), "[ma]ke"),
+        Assert.equal(marks("make", "zz"), "make"),
+        Assert.equal(marks("make", ""), "make"),
+      ])
+    }),
   ],
 )
 
