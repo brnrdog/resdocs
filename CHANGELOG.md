@@ -7,6 +7,12 @@ version is picked.
 
 ## Unreleased
 
+- Using the Action more than once in a job (several packages, then
+  `hub`) no longer breaks the later uses: from a branch, the second
+  use took the first one's build output for a release and reinstalled
+  without dev dependencies. Releases are now marked by `dist/RELEASE`,
+  and a later use reuses the install.
+
 - Every page is pre-rendered at build time: the home page, one page
   per top level module (`module/<id>/index.html`) and `404.html`,
   each with its own title and meta description. Pages read without

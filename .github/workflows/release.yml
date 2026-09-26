@@ -84,7 +84,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout --detach
-          git add -f dist/viewer $(git ls-files --others --ignored --exclude-standard src | grep '\.res\.mjs$')
+          # Tells action.yml this tree is a release: runtime deps only.
+          echo "$VERSION" > dist/RELEASE
+          git add -f dist/RELEASE dist/viewer $(git ls-files --others --ignored --exclude-standard src | grep '\.res\.mjs$')
           git commit -q -m "Release v$VERSION"
           git tag -a "v$VERSION" -m "v$VERSION"
 

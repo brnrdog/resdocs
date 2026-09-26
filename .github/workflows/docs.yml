@@ -1,5 +1,10 @@
 # Dogfood: documents xote and rescript-signals with the action in this
 # repository and publishes both under one GitHub Pages site.
+#
+# resdocs is checked out into resdocs/, beside deps/, the way a user's
+# workflow looks. Checked out at the root, it would contain the
+# packages under documentation, and ReScript would build them as part
+# of resdocs's own rescript.json and its node_modules.
 name: Docs
 
 on:
@@ -24,6 +29,8 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          path: resdocs
 
       - uses: actions/checkout@v7
         with:
@@ -45,7 +52,7 @@ jobs:
           (cd deps/rescript-signals && npm ci)
 
       - name: Document xote
-        uses: ./
+        uses: ./resdocs
         with:
           project: deps/xote
           out: site/xote
@@ -57,7 +64,7 @@ jobs:
           deploy: "false"
 
       - name: Document rescript-signals
-        uses: ./
+        uses: ./resdocs
         with:
           project: deps/rescript-signals/packages/rescript-signals
           out: site/rescript-signals
@@ -69,7 +76,7 @@ jobs:
           deploy: "false"
 
       - name: Write the package index
-        uses: ./
+        uses: ./resdocs
         with:
           command: hub
           out: site

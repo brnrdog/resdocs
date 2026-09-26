@@ -51,6 +51,17 @@ jobs:
           title: Probe "docs" <&>
           deploy: "false"
 
+      # A second build in the same job, as docs.yml does: it must reuse
+      # the first install rather than replace it.
+      - name: Document it again with the Action
+        uses: ./
+        with:
+          project: fixtures/probe
+          out: hub/probe-again
+          base: /docs/probe-again/
+          hub: /docs/
+          deploy: "false"
+
       - name: Write a hub over it with the Action
         uses: ./
         with:
@@ -62,4 +73,6 @@ jobs:
       - name: Check the output
         run: |
           node scripts/check-site.mjs hub/probe /docs/probe/ Probe 'Probe &quot;docs&quot; &lt;&amp;&gt;'
+          node scripts/check-site.mjs hub/probe-again /docs/probe-again/ Probe
           grep -q 'href="probe/"' hub/index.html
+          grep -q 'href="probe-again/"' hub/index.html
