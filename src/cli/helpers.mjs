@@ -3,9 +3,10 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { compile, runSync } from "@mdx-js/mdx";
+import { unified } from "unified";
+import remarkParse from "remark-parse";
 import remarkGfm from "remark-gfm";
-import * as runtime from "xote/jsx-runtime";
+import remarkRehype from "remark-rehype";
 
 // Root of the resdocs package itself (this file is src/cli/helpers.mjs).
 export const packageRoot = fileURLToPath(new URL("../../", import.meta.url));
@@ -34,24 +35,70 @@ export async function rescriptBins(rescriptDir) {
   return { tools: mod.rescript_tools_exe, rescript: mod.rescript_exe };
 }
 
-// Compile one docstring to an MDX function body and prove that it
-// runs against xote's JSX runtime. Returns null when the text is not
-// valid MDX, so the viewer falls back to plain text.
-export async function compileDoc(markdown) {
-  try {
-    const code = String(
-      await compile(markdown, {
-        outputFormat: "function-body",
-        remarkPlugins: [remarkGfm],
-        development: false,
-      }),
-    );
-    const mod = runSync(code, { ...runtime, baseUrl: "file:///" });
-    mod.default({});
-    return code;
-  } catch {
-    return null;
+// Parse one docstring as Markdown with GitHub extensions into the
+// tree Doc.res describes. Raw HTML is kept as literal text, never as
+// markup, and nothing in the docstring is evaluated: MDX expressions
+// such as `{...}` are just braces. Doc.sanitize runs on the result.
+function htmlAsText() {
+  const blocks = new Set(["root", "blockquote", "listItem", "footnoteDefinition"]);
+  return tree => {
+    const walk = node => {
+      node.children?.forEach((child, i) => {
+        if (child.type !== "html") {
+          walk(child);
+        } else if (blocks.has(node.type)) {
+          node.children[i] = { type: "paragraph", children: [{ type: "text", value: child.value }] };
+        } else {
+          child.type = "text";
+        }
+      });
+    };
+    walk(tree);
+  };
+}
+
+const withHtmlAsText = unified()
+  .use(remarkParse)
+  .use(remarkGfm)
+  .use(htmlAsText)
+  .use(remarkRehype);
+
+function attrValue(value) {
+  if (Array.isArray(value)) return value.join(" ");
+  if (value === true) return "";
+  return String(value);
+}
+
+function attrName(name) {
+  if (name === "className") return "class";
+  if (name.startsWith("data")) return null;
+  if (name.startsWith("aria")) return "aria-" + name.slice(4).toLowerCase();
+  return name.toLowerCase();
+}
+
+function toDoc(node) {
+  if (node.type === "text") {
+    return [{ t: "x", value: node.value }];
   }
+  if (node.type === "element") {
+    const attrs = [];
+    for (const [key, value] of Object.entries(node.properties ?? {})) {
+      const name = attrName(key);
+      if (name !== null && value !== false && value != null) {
+        attrs.push([name, attrValue(value)]);
+      }
+    }
+    return [{ t: "e", tag: node.tagName, attrs, children: node.children.flatMap(toDoc) }];
+  }
+  if (node.type === "root") {
+    return node.children.flatMap(toDoc);
+  }
+  return [];
+}
+
+export function parseDoc(text) {
+  const tree = withHtmlAsText.runSync(withHtmlAsText.parse(text));
+  return toDoc(tree);
 }
 
 export function copyDir(src, dst) {

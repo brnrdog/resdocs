@@ -145,45 +145,34 @@ let normalizeBase = (base: string): string => {
 
 /* ---------------------------------------------------------------- docs */
 
-let mapAsync = async (items: array<'a>, f: 'a => promise<'b>): array<'b> => {
-  let out = []
-  for i in 0 to Array.length(items) - 1 {
-    out->Array.push(await f(items->Array.getUnsafe(i)))
-  }
-  out
-}
+/* Docstrings become sanitized trees; see src/core/Doc.res. */
+let parseDoc = (doc: string): option<array<Doc.node>> =>
+  doc == "" ? None : Some(Doc.sanitize(Node.parseDoc(doc)))
 
-let compileDoc = async (doc: string): option<string> =>
-  doc == "" ? None : (await Node.compileDoc(doc))->Nullable.toOption
+let parseField = (f: Bundle.field): Bundle.field => {...f, docTree: parseDoc(f.doc)}
 
-let compileField = async (f: Bundle.field): Bundle.field => {
-  ...f,
-  docCode: await compileDoc(f.doc),
-}
-
-let compileConstructor = async (c: Bundle.constructor): Bundle.constructor => {
+let parseConstructor = (c: Bundle.constructor): Bundle.constructor => {
   ...c,
-  docCode: await compileDoc(c.doc),
-  fields: await mapAsync(c.fields, compileField),
+  docTree: parseDoc(c.doc),
+  fields: c.fields->Array.map(parseField),
 }
 
-let compileItem = async (item: Bundle.item): Bundle.item => {
+let parseItem = (item: Bundle.item): Bundle.item => {
   ...item,
-  docCode: await compileDoc(item.doc),
+  docTree: parseDoc(item.doc),
   detail: switch item.detail {
   | Abstract => Abstract
-  | Record({fields}) => Record({fields: await mapAsync(fields, compileField)})
-  | Variant({constructors}) =>
-    Variant({constructors: await mapAsync(constructors, compileConstructor)})
+  | Record({fields}) => Record({fields: fields->Array.map(parseField)})
+  | Variant({constructors}) => Variant({constructors: constructors->Array.map(parseConstructor)})
   },
 }
 
-let rec compileModule = async (m: Bundle.module_): Bundle.module_ => {
+let rec parseModule = (m: Bundle.module_): Bundle.module_ => {
   ...m,
-  docCode: await compileDoc(m.doc),
-  types: await mapAsync(m.types, compileItem),
-  values: await mapAsync(m.values, compileItem),
-  modules: await mapAsync(m.modules, compileModule),
+  docTree: parseDoc(m.doc),
+  types: m.types->Array.map(parseItem),
+  values: m.values->Array.map(parseItem),
+  modules: m.modules->Array.map(parseModule),
 }
 
 /* Items without a docstring, reported per file module. */
@@ -264,7 +253,7 @@ let build = async (opts: options): int => {
         )
         let namespace = docs->Array.get(0)->Option.flatMap(Normalize.namespaceOf)
         let modules = Refs.apply(docs->Array.map(doc => Normalize.ofDoc(doc)))
-        let modules = await mapAsync(modules, compileModule)
+        let modules = modules->Array.map(parseModule)
         modules->Array.forEach(m => {
           let (missing, total) = undocumented(m)
           if missing > 0 {

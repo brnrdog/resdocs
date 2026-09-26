@@ -25,7 +25,7 @@ let field = (f: Docgen.field): Bundle.field => {
   signature: f.signature,
   optional: f.optional,
   doc: joinDocs(f.docstrings),
-  docCode: None,
+  docTree: None,
   deprecated: f.deprecated,
 }
 
@@ -33,7 +33,7 @@ let constructor = (c: Docgen.constructor): Bundle.constructor => {
   name: c.name,
   signature: c.signature,
   doc: joinDocs(c.docstrings),
-  docCode: None,
+  docTree: None,
   deprecated: c.deprecated,
   fields: switch c.payload {
   | Some(InlineRecord({fields})) => fields->Array.map(field)
@@ -73,7 +73,7 @@ let item = (
     name,
     signature,
     doc: joinDocs(docstrings),
-    docCode: None,
+    docTree: None,
     deprecated,
     source: source(src),
     detail: switch kind {
@@ -174,7 +174,7 @@ let rec module_ = (
     kind,
     anchor: relPath->Array.length == 0 ? "top" : anchorOf("module", relPath),
     doc: joinDocs(docstrings),
-    docCode: None,
+    docTree: None,
     deprecated,
     source: source(src),
     types,
