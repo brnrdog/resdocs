@@ -39,8 +39,8 @@ let deprecated = (message: option<string>): View.node =>
   | None => View.empty()
   }
 
-let doc = (~code: option<string>, ~fallback: string): View.node =>
-  fallback == "" ? View.empty() : <div class="doc"> {Markdown.render(~code, ~fallback)} </div>
+let doc = (~tree: option<array<Doc.node>>, ~fallback: string): View.node =>
+  fallback == "" ? View.empty() : <div class="doc"> {Markdown.render(~tree, ~fallback)} </div>
 
 let documented = (field: Bundle.field) => field.doc != "" || field.deprecated->Option.isSome
 
@@ -50,7 +50,7 @@ let fieldRow = (~withDoc: bool, f: Bundle.field): View.node =>
     <td> <code class="field-name"> {View.text(f.name ++ (f.optional ? "?" : ""))} </code> </td>
     <td> {Signature.inline(f.signature)} </td>
     {withDoc
-      ? <td> {doc(~code=f.docCode, ~fallback=f.doc)} {deprecated(f.deprecated)} </td>
+      ? <td> {doc(~tree=f.docTree, ~fallback=f.doc)} {deprecated(f.deprecated)} </td>
       : View.empty()}
   </tr>
 
@@ -78,7 +78,7 @@ let constructorRow = (c: Bundle.constructor): View.node =>
   <li class="constructor">
     <div class="constructor-head"> {Signature.inline(c.signature)} </div>
     {deprecated(c.deprecated)}
-    {doc(~code=c.docCode, ~fallback=c.doc)}
+    {doc(~tree=c.docTree, ~fallback=c.doc)}
     {Array.length(c.fields) > 0 ? fieldsTable(c.fields) : View.empty()}
   </li>
 
@@ -111,7 +111,7 @@ let itemCard = (item: Bundle.item): View.node =>
     </h3>
     {Signature.render(item)}
     {deprecated(item.deprecated)}
-    {doc(~code=item.docCode, ~fallback=item.doc)}
+    {doc(~tree=item.docTree, ~fallback=item.doc)}
     {detail(item)}
   </section>
 
@@ -140,7 +140,7 @@ and submodule = (m: Bundle.module_): View.node =>
       {sourceLink(m.source)}
     </h2>
     {deprecated(m.deprecated)}
-    {doc(~code=m.docCode, ~fallback=m.doc)}
+    {doc(~tree=m.docTree, ~fallback=m.doc)}
     {sections(m)}
   </section>
 
@@ -149,7 +149,7 @@ let render = (m: Bundle.module_): View.node =>
     <header class="module-header">
       <h1> {badge("module")} <code> {View.text(m.id)} </code> {sourceLink(m.source)} </h1>
       {deprecated(m.deprecated)}
-      {doc(~code=m.docCode, ~fallback=m.doc)}
+      {doc(~tree=m.docTree, ~fallback=m.doc)}
     </header>
     {sections(m)}
   </article>

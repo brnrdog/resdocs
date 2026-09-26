@@ -23,9 +23,17 @@ Router.initSSR(~pathname="/", ())
 
 @get external innerHTML: Dom.element => string = "innerHTML"
 
-/* Compiled with the same helper the CLI uses. */
+/* Parsed with the same helper and sanitizer the CLI uses. */
 @module("../src/cli/helpers.mjs")
-external compileDoc: string => promise<Nullable.t<string>> = "compileDoc"
+external parseDocRaw: string => array<Doc.node> = "parseDoc"
+
+let parseDoc = text => Some(Doc.sanitize(parseDocRaw(text)))
+
+let renderDoc = text => {
+  let html = mountNode(Markdown.render(~tree=parseDoc(text), ~fallback="raw"))->innerHTML
+  DomTesting.cleanup()
+  html
+}
 
 let item = (~signature, ~refs): Bundle.item => {
   id: "Probe.run",
@@ -34,7 +42,7 @@ let item = (~signature, ~refs): Bundle.item => {
   name: "run",
   signature,
   doc: "",
-  docCode: None,
+  docTree: None,
   deprecated: None,
   source: {file: "src/Probe.res", line: 1},
   detail: Abstract,
@@ -57,10 +65,10 @@ let bundleWith = (modules): Bundle.bundle => {
 let suite = Suite.async(
   "Viewer rendering",
   [
-    Test.async("markdown renders through MDX with GFM and highlighting", async () => {
-      let code = await compileDoc("Doc for `run`.\n\n- one\n- two\n\n```rescript\nlet x = A\n```\n\n| a | b |\n|---|---|\n| 1 | 2 |")
-      let html = mountNode(Markdown.render(~code=code->Nullable.toOption, ~fallback="raw"))->innerHTML
-      DomTesting.cleanup()
+    Test.async("markdown renders with GFM and highlighting", async () => {
+      let html = renderDoc(
+        "Doc for `run`.\n\n- one\n- two\n\n```rescript\nlet x = A\n```\n\n| a | b |\n|---|---|\n| 1 | 2 |",
+      )
       Assert.combineResults([
         Assert.contains(html, "<p>Doc for <code>run</code>.</p>"),
         Assert.contains(html, "<li>one</li>"),
@@ -70,17 +78,60 @@ let suite = Suite.async(
       ])
     }),
     Test.async("markdown falls back to plain text without code", async () => {
-      let html = mountNode(Markdown.render(~code=None, ~fallback="a < b"))->innerHTML
-      let empty = mountNode(Markdown.render(~code=None, ~fallback=""))->innerHTML
+      let html = mountNode(Markdown.render(~tree=None, ~fallback="a < b"))->innerHTML
+      let empty = mountNode(Markdown.render(~tree=None, ~fallback=""))->innerHTML
       DomTesting.cleanup()
       Assert.combineResults([
         Assert.equal(html, "<pre class=\"doc-plain\">a &lt; b</pre>"),
         Assert.equal(empty, ""),
       ])
     }),
-    Test.async("invalid MDX is rejected by the compiler", async () => {
-      let code = await compileDoc("unbalanced <div>")
-      Assert.equal(code->Nullable.toOption, None)
+    Test.async("docstrings are never evaluated", async () => {
+      let html = renderDoc("Hi {globalThis.pwned = 1} and <script>alert(1)</script> <img src=x onerror=alert(1)>")
+      Assert.combineResults([
+        Assert.isFalse(%raw(`globalThis.pwned === 1`)),
+        Assert.contains(html, "Hi {globalThis.pwned = 1} and &lt;script&gt;alert(1)&lt;/script&gt;"),
+        Assert.contains(html, "&lt;img src=x onerror=alert(1)&gt;"),
+        Assert.isFalse(html->String.includes("<script")),
+        Assert.isFalse(html->String.includes("<img")),
+      ])
+    }),
+    Test.async("links keep safe URLs only", async () => {
+      let html = renderDoc(
+        "[a](javascript:alert(1)) [b](JAVASCRIPT:alert(1)) [c](data:text/html,x) [g](jav&#x09;ascript:x) [d](https://rescript-lang.org) [e](#type-t) [f](./Other.res)",
+      )
+      Assert.combineResults([
+        Assert.isFalse(html->String.toLowerCase->String.includes("href=\"j")),
+        Assert.isFalse(html->String.includes("href=\"data")),
+        Assert.contains(html, "<a>a</a>"),
+        Assert.contains(html, "<a href=\"https://rescript-lang.org\">d</a>"),
+        Assert.contains(html, "<a href=\"#type-t\">e</a>"),
+        Assert.contains(html, "<a href=\"./Other.res\">f</a>"),
+      ])
+    }),
+    Test.async("urls with hidden schemes are unsafe", async () =>
+      Assert.combineResults([
+        Assert.isFalse(Doc.isSafeUrl("java\tscript:alert(1)")),
+        Assert.isFalse(Doc.isSafeUrl(" \njavascript:alert(1)")),
+        Assert.isFalse(Doc.isSafeUrl("vbscript:x")),
+        Assert.isTrue(Doc.isSafeUrl("mailto:a@b.c")),
+        Assert.isTrue(Doc.isSafeUrl("Module#value-x:y")),
+        Assert.isTrue(Doc.isSafeUrl("../a?b=c:d")),
+      ])
+    ),
+    Test.async("a hand-edited bundle tree is sanitized in the viewer", async () => {
+      let tree: array<Doc.node> = [
+        Element({tag: "script", attrs: [], children: [Text({value: "alert(1)"})]}),
+        Element({
+          tag: "a",
+          attrs: [("href", "javascript:alert(1)"), ("onclick", "alert(1)"), ("title", "t")],
+          children: [Text({value: "link"})],
+        }),
+        Element({tag: "iframe", attrs: [("src", "https://example.com")], children: []}),
+      ]
+      let html = mountNode(Markdown.render(~tree=Some(tree), ~fallback="raw"))->innerHTML
+      DomTesting.cleanup()
+      Assert.equal(html, "alert(1)<a title=\"t\">link</a>")
     }),
     Test.async("signature links resolved names and highlights the rest", async () => {
       Signal.set(

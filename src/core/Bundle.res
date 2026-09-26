@@ -9,7 +9,7 @@ type field = {
   signature: string,
   optional: bool,
   doc: string,
-  docCode: option<string>,
+  docTree: option<array<Doc.node>>,
   deprecated: option<string>,
 }
 
@@ -17,7 +17,7 @@ type constructor = {
   name: string,
   signature: string,
   doc: string,
-  docCode: option<string>,
+  docTree: option<array<Doc.node>>,
   deprecated: option<string>,
   fields: array<field>,
 }
@@ -42,7 +42,7 @@ type item = {
   name: string,
   signature: string,
   doc: string,
-  docCode: option<string>,
+  docTree: option<array<Doc.node>>,
   deprecated: option<string>,
   source: source,
   detail: typeDetail,
@@ -60,7 +60,7 @@ type rec module_ = {
   kind: moduleKind,
   anchor: string,
   doc: string,
-  docCode: option<string>,
+  docTree: option<array<Doc.node>>,
   deprecated: option<string>,
   source: source,
   types: array<item>,
@@ -83,7 +83,7 @@ type bundle = {
   modules: array<module_>,
 }
 
-let version = 1
+let version = 2
 
 external fromJson: JSON.t => bundle = "%identity"
 

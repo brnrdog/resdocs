@@ -24,6 +24,7 @@ breaks both at compile time.
         core/                shared by CLI and viewer, no DOM
           Docgen.res         types for rescript-tools JSON, decoder
           Bundle.res         normalized bundle types, JSON codec
+          Doc.res            docstring trees and their sanitizer
           Normalize.res      docgen doc -> bundle module
           Path.res           module path helpers, id and anchor rules
           Refs.res           type reference resolution
@@ -35,12 +36,12 @@ breaks both at compile time.
           Project.res        read rescript.json, list source files
           Tools.res          locate and run rescript-tools
           Node.res           fs, path, child_process externals
-          helpers.mjs        binary lookup, MDX compile, copy
+          helpers.mjs        binary lookup, Markdown parse, copy
         viewer/
           Main.res           Router.init, fetch, document effects
           Store.res          signals and computeds, see section 5
           Browser.res        DOM externals beyond xote
-          Markdown.res       runs precompiled MDX through Xote.Mdx
+          Markdown.res       renders Doc trees as xote nodes
           Signature.res      signature with type links
           Highlight.res      ReScript syntax highlighting
           components/
@@ -76,8 +77,8 @@ Notes on the split:
 
 - `src/core` compiles to ESM that runs in both Node and the browser.
   It must not reference `Dom` or `process`.
-- `src/cli` is Node only. Its one use of xote is running each
-  compiled docstring once, to reject MDX that would fail at render.
+- `src/cli` is Node only. It never evaluates anything it reads from
+  the documented package.
 - `src/viewer` is browser only. It reads the bundle over `fetch`.
 - Tests live in `tests/` with a `Test.res` suffix (`zekr.json` sets
   the pattern; a `.test.res` name would shadow the module under
@@ -121,7 +122,7 @@ and viewer and are the unit under test.
       signature: string,
       optional: bool,
       doc: string,                    docstrings joined by "\n\n"
-      docCode: option<string>,        precompiled MDX function body
+      docTree: option<array<Doc.node>>, parsed Markdown, see below
       deprecated: option<string>,
     }
 
@@ -129,7 +130,7 @@ and viewer and are the unit under test.
       name: string,
       signature: string,
       doc: string,
-      docCode: option<string>,
+      docTree: option<array<Doc.node>>,
       deprecated: option<string>,
       fields: array<field>,           inline record payload, else []
     }
@@ -148,7 +149,7 @@ and viewer and are the unit under test.
       name: string,
       signature: string,              verbatim from the tool
       doc: string,
-      docCode: option<string>,
+      docTree: option<array<Doc.node>>,
       deprecated: option<string>,
       source: source,
       detail: typeDetail,             Abstract for values
@@ -161,7 +162,7 @@ and viewer and are the unit under test.
       kind: moduleKind,               Module | ModuleType | Alias
       anchor: string,                 "top" or "module-For"
       doc: string,
-      docCode: option<string>,
+      docTree: option<array<Doc.node>>,
       deprecated: option<string>,
       source: source,
       types: array<item>,
@@ -170,7 +171,7 @@ and viewer and are the unit under test.
     }
 
     type bundle = {
-      version: int,                   bundle format, starts at 1
+      version: int,                   bundle format, 2 since docTree
       package: string,                npm name, "xote"
       packageVersion: string,         from package.json
       description: string,            one line, from package.json
@@ -196,12 +197,16 @@ Design choices:
   text. `Stdlib.*` and `Dom.*` stay plain in the MVP.
 - Types and values are split into two arrays because the page groups
   them that way. Source order is preserved inside each group.
-- `doc` is raw markdown and `docCode` is the same text compiled to
-  an MDX function body by the CLI (`@mdx-js/mdx` with GFM). The
-  viewer runs the body against xote's JSX runtime and renders it
-  through `Xote.Mdx`, so docstrings become xote nodes without any
-  HTML injection. A docstring that is not valid MDX has no
-  `docCode` and is shown as plain text.
+- `doc` is raw markdown and `docTree` is the same text parsed by
+  the CLI (remark with GFM, then remark-rehype) into `Doc.node`, a
+  tree of elements and text. Docstrings are data, never code:
+  nothing from a package is evaluated at build time or in the
+  browser, raw HTML is kept as literal text, and `{...}` is just
+  braces. `Doc.sanitize` keeps an allowlist of tags and attributes
+  and drops links whose scheme is not http, https or mailto. The CLI
+  runs it before writing the bundle and the viewer again before
+  rendering, so a hand-edited bundle on a shared hub origin cannot
+  inject script either.
 - Everything is a plain record with only strings, ints, options and
   arrays, so the JSON codec is direct and the bundle is small (the
   xote bundle is expected around 200 KB before compression).
@@ -360,7 +365,8 @@ Numbers go into the README with the machine they were taken on.
 - `SigTokensTest.res`: labels, fields, type variables, keywords.
 - `SearchTest.res`: each ranking tier, tie breaking, deprecated
   penalty, cap, and empty query.
-- `ViewerTest.res`: MDX docstrings with GFM and highlighting, plain
+- `ViewerTest.res`: docstrings with GFM and highlighting, docstrings
+  never evaluated, unsafe URLs and tags dropped, plain
   text fallback, linked signatures and the highlighter, rendered
   through xote into jsdom via `Zekr.DomTesting`.
 - `bench/smoke.mjs`: end to end in headless Chromium on the xote

@@ -46,6 +46,6 @@ external findPackageDir: (string, string) => Nullable.t<string> = "findPackageDi
 type bins = {tools: string, rescript: string}
 @module("./helpers.mjs") external rescriptBins: string => promise<bins> = "rescriptBins"
 @module("./helpers.mjs")
-external compileDoc: string => promise<Nullable.t<string>> = "compileDoc"
+external parseDoc: string => array<Doc.node> = "parseDoc"
 @module("./helpers.mjs") external copyDir: (string, string) => unit = "copyDir"
 @module("./helpers.mjs") external nowIso: unit => string = "nowIso"

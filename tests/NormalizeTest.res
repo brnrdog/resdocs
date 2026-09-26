@@ -75,7 +75,7 @@ let suite = Suite.make(
         Assert.equal(run.doc, "Doc for `run`."),
         Assert.equal(inner.doc, "Nested module docs"),
         Assert.equal(t.doc, "inner type"),
-        Assert.equal(run.docCode, None),
+        Assert.equal(run.docTree, None),
       ])
     }),
     Test.make("record detail keeps optional fields", () => {

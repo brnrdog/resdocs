@@ -112,7 +112,7 @@ warns about public items without a docstring.
 
 Only `/** */` comments are documentation; `/* */` comments are not.
 A `/*** */` comment at the top of a file documents the module.
-Docstrings are Markdown with GitHub tables, compiled as MDX at build
+Docstrings are Markdown with GitHub tables, parsed at build
 time. Fenced blocks tagged `rescript` are syntax highlighted, which
 is how examples are written, following the stdlib convention:
 
@@ -126,8 +126,8 @@ is how examples are written, following the stdlib convention:
     */
 
 Examples are rendered, not compiled, so nothing checks that they
-still typecheck. Text that is not valid MDX (an unclosed `<tag>` for
-instance) is shown verbatim.
+still typecheck. Raw HTML in a docstring is shown as literal text,
+and links are kept only for http, https, mailto and relative URLs.
 
 ## Requirements
 
@@ -145,6 +145,7 @@ instance) is shown verbatim.
       SigTokens   signature tokenizer
       Refs        type reference resolution
       Search      index and ranking
+      Doc         docstring trees and their sanitizer
     src/cli       Node only
       Hub         the package index page
     src/viewer    browser only, xote components
@@ -154,7 +155,7 @@ instance) is shown verbatim.
 The bundle is one JSON file. Ids are display paths computed from
 nesting (`Xote.View.For.make`), each item carries its verbatim
 signature plus the resolved references found in it, and docstrings
-are stored both raw and as precompiled MDX. `docs/design.md` has the
+are stored both raw and as a parsed Markdown tree. `docs/design.md` has the
 full data model and `docs/api-survey.md` the survey of the tool
 output it was derived from.
 
@@ -185,9 +186,11 @@ touch what the DOM owns: the theme attribute, the document title,
 the global `/` shortcut, and scrolling the selection or a deep link
 target into view.
 
-Rendered docstrings are xote nodes, not injected HTML: the CLI
-compiles Markdown to an MDX function body, and the viewer runs it
-against xote's JSX runtime through `Xote.Mdx`.
+Rendered docstrings are xote nodes, not injected HTML, and never
+code: the CLI parses Markdown into a tree of elements and text
+(`src/core/Doc.res`), sanitized against an allowlist, and the viewer
+builds nodes from it after sanitizing it again. Nothing from a
+documented package is evaluated, at build time or in the browser.
 
 ## Performance
 
