@@ -21,7 +21,7 @@ Live examples, generated from this repository's own workflow:
 
 Document your package into `docs-site/` with one command:
 
-    npx github:brnrdog/resdocs build --project . --out docs-site
+    npx github:brnrdog/resdocs#v0.1.0 build --project . --out docs-site
 
 Then publish it with the Action. Add `.github/workflows/docs.yml`:
 
@@ -40,11 +40,16 @@ Then publish it with the Action. Add `.github/workflows/docs.yml`:
           name: github-pages
         steps:
           - uses: actions/checkout@v7
-          - uses: brnrdog/resdocs@main
+          - uses: brnrdog/resdocs@v0.1
 
 Enable GitHub Pages with "GitHub Actions" as the source, and the site
 appears at `https://<user>.github.io/<repo>/`. Source links point at
 the commit being built.
+
+`@v0.1` follows the latest 0.1.x release; pin `@v0.1.0` for an exact
+one. Release tags carry the compiled CLI and the built viewer, so
+they install in seconds. `@main` works too but builds resdocs on
+every run. Releases and their notes are listed in `CHANGELOG.md`.
 
 ### Hosting several packages
 
@@ -228,6 +233,22 @@ Module page render (median of 5)
     npm run dev         Vite dev server
     npm run bench       benchmark on the xote bundle
     npm run docs:xote   full site for xote into docs-site/xote
+
+### Releasing
+
+1. Move the `## Unreleased` notes in `CHANGELOG.md` under a new
+   `## <version>` heading and set the same `version` in
+   `package.json`. Before 1.0, a breaking change (including a new
+   bundle format) bumps the minor version.
+2. Merge that to main, then run the Release workflow from the
+   Actions tab.
+
+The workflow builds and tests main, commits the build output on a
+detached commit, tags it `v<version>`, moves the floating tag
+(`v0.<minor>` before 1.0, `v<major>` after), and creates a GitHub
+release from the changelog section. It refuses a version that is
+already tagged or has no changelog section. Ticking "npm" also
+publishes the package, which needs an `NPM_TOKEN` secret.
 
 ## Design
 

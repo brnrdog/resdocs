@@ -1,7 +1,6 @@
 {
   "name": "resdocs",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "dependencies": {
     "@rescript/runtime": "12.3.1",
@@ -30,7 +29,7 @@
     "bench": "node bench/bench.mjs",
     "docs:xote": "node bin/resdocs.mjs build --project node_modules/xote --out docs-site/xote --base /xote/ --exclude Runtime*",
     "docs:signals": "node bin/resdocs.mjs build --project node_modules/rescript-signals --out docs-site/rescript-signals --base /rescript-signals/",
-    "prepare": "npm run build"
+    "prepare": "node scripts/prepare.mjs"
   },
   "bin": {
     "resdocs": "bin/resdocs.mjs"
@@ -41,7 +40,9 @@
     "dist/viewer",
     "rescript.json",
     "index.html",
-    "README.md"
+    "README.md",
+    "scripts/prepare.mjs",
+    "CHANGELOG.md"
   ],
   "repository": {
     "type": "git",
