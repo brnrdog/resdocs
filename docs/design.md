@@ -227,7 +227,9 @@ Built once from the bundle, in the viewer at load time and in tests.
       kind: Module | Type | Value,
       moduleId: string,
       signature: string,              indexed with lower weight
-      href: string,
+      summary: string,                first sentence of the docstring
+      docLower: string,               the docstring, lowest tier
+      deprecated: bool,
     }
 
 Ranking is deterministic and pure, `query => array<(entry, score)>`:
@@ -240,10 +242,22 @@ Ranking is deterministic and pure, `query => array<(entry, score)>`:
 | name contains query                    | 40    |
 | qualified id contains query            | 30    |
 | signature contains query               | 10    |
+| docstring contains query               | 5     |
+| every word in id, signature or docs    | 3     |
 | bonus for shorter names on equal score | tie   |
-| penalty for deprecated                 | -20   |
+| penalty for deprecated (floor 1)       | -20   |
 
-Results cap at 50. Both the ranking and the tie rules are tested.
+A `type:`, `value:` or `module:` prefix (or `t:`, `v:`, `m:`) keeps
+one kind; on its own it lists that kind. The dropdown shows 50 and
+says how many matched in all. `Search.highlight` splits a name into
+matched and unmatched runs (the substring, or the initials) for the
+result list. Ranking, filters, tie rules and highlighting are tested.
+
+Recently viewed pages and items (`src/core/Recent.res`) are ids, most
+recent first, deduplicated and capped at 20, kept in local storage
+under a key per site. The viewer records the module page, or the item
+its hash names, whenever the location changes, and lists them in the
+sidebar and in the search dropdown while the query is empty.
 
 ## 5. How signals drive the viewer
 

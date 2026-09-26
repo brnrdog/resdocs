@@ -115,6 +115,20 @@ let hrefOf = (id: string): option<string> =>
 
 let index = Computed.make(() => Signal.get(bundle)->Option.mapOr([], Search.build))
 
+let entryById = Computed.make(() => {
+  let dict = Dict.make()
+  Signal.get(index)->Array.forEach((e: Search.entry) => dict->Dict.set(e.id, e))
+  dict
+})
+
+/* The id an anchor on a module page names: "Xote.View#value-text" is
+   Xote.View.text. */
+let idByAnchor = Computed.make(() => {
+  let dict = Dict.make()
+  Signal.get(targets)->Dict.forEachWithKey((t, id) => dict->Dict.set(t.moduleId ++ "#" ++ t.anchor, id))
+  dict
+})
+
 @val external decodeURIComponent: string => string = "decodeURIComponent"
 
 /* --------------------------------------------------------------- routing */
@@ -167,15 +181,72 @@ let currentModule = Computed.make(
   ~equals=(a, b) => a === b,
 )
 
+/* ---------------------------------------------------------------- recent */
+
+/* Per site, so a hub's packages keep separate histories. */
+let recentKey = "resdocs-recent:" ++ base
+
+let recent: Signal.t<array<string>> = Signal.make(
+  Browser.isBrowser ? Recent.decode(Browser.readStorage(recentKey)) : [],
+  ~name="recent",
+)
+
+let visit = (id: string) =>
+  if Signal.peek(recent)->Array.get(0) != Some(id) {
+    let next = Recent.add(Signal.peek(recent), id)
+    Signal.set(recent, next)
+    Browser.writeStorage(recentKey, Recent.encode(next))
+  }
+
+let clearRecent = () => {
+  Signal.set(recent, [])
+  Browser.writeStorage(recentKey, Recent.encode([]))
+}
+
+/* Recent ids the current bundle still has, as search entries. */
+let recentEntries = Computed.make(() => {
+  let byId = Signal.get(entryById)
+  Signal.get(recent)->Array.filterMap(id => byId->Dict.get(id))
+})
+
 /* ---------------------------------------------------------------- search */
 
 let query = Signal.make("", ~name="query")
 let selected = Signal.make(0, ~name="selected")
+let searchFocused = Signal.make(false, ~name="searchFocused")
 
-let results = Computed.make(() => Search.search(Signal.get(index), Signal.get(query)), ~name="results")
+let ranked = Computed.make(() => Search.rank(Signal.get(index), Signal.get(query)), ~name="ranked")
+let resultLimit = 50
+let results = Computed.make(
+  () => Signal.get(ranked)->Array.slice(~start=0, ~end=resultLimit),
+  ~name="results",
+)
+let resultTotal = Computed.make(() => Array.length(Signal.get(ranked)), ~equals=(a, b) => a == b)
+
+let showingRecent = Computed.make(
+  () => String.trim(Signal.get(query)) == "",
+  ~equals=(a, b) => a == b,
+)
+
+/* What the dropdown lists: matches, or with an empty query the
+   recently viewed entries. Keyboard selection moves through this. */
+let listed = Computed.make(
+  () =>
+    Signal.get(showingRecent)
+      ? Signal.get(recentEntries)->Array.slice(~start=0, ~end=8)
+      : Signal.get(results),
+  ~name="listed",
+)
+
+let panelOpen = Computed.make(
+  () =>
+    Signal.get(searchFocused) &&
+    (!Signal.get(showingRecent) || Array.length(Signal.get(listed)) > 0),
+  ~equals=(a, b) => a == b,
+)
 
 let selectedId = Computed.make(
-  () => Signal.get(results)->Array.get(Signal.get(selected))->Option.map(e => e.id),
+  () => Signal.get(listed)->Array.get(Signal.get(selected))->Option.map(e => e.id),
   ~equals=(a, b) => a == b,
 )
 
@@ -185,8 +256,16 @@ let setQuery = (q: string) =>
     Signal.set(selected, 0)
   })
 
+let setSearchFocused = (focused: bool) =>
+  Signal.batch(() => {
+    Signal.set(searchFocused, focused)
+    Signal.set(selected, 0)
+  })
+
+let select = (i: int) => Signal.set(selected, i)
+
 let moveSelection = (delta: int) => {
-  let count = Signal.peek(results)->Array.length
+  let count = Signal.peek(listed)->Array.length
   if count > 0 {
     let next = Signal.peek(selected) + delta
     Signal.set(selected, next < 0 ? count - 1 : mod(next, count))
@@ -200,7 +279,7 @@ let navigateTo = (entry: Search.entry) => {
 }
 
 let submit = () =>
-  switch Signal.peek(results)->Array.get(Signal.peek(selected)) {
+  switch Signal.peek(listed)->Array.get(Signal.peek(selected)) {
   | Some(entry) => navigateTo(entry)
   | None => ()
   }

@@ -18,6 +18,9 @@ type entry = {
   moduleId: string,
   anchor: string,
   signature: string,
+  /* First sentence of the docstring, shown under a result. */
+  summary: string,
+  docLower: string,
   deprecated: bool,
 }
 
@@ -40,7 +43,11 @@ let initials = (name: string): string => {
   out.contents
 }
 
-let entry = (~kind, ~id, ~name, ~moduleId, ~anchor, ~signature, ~deprecated): entry => {
+/* Markdown punctuation that reads as noise in a one-line summary. */
+let plain = (text: string): string =>
+  text->String.replaceRegExp(/[`*_]/g, "")->String.trim
+
+let entry = (~kind, ~id, ~name, ~moduleId, ~anchor, ~signature, ~doc="", ~deprecated): entry => {
   id,
   name,
   lower: name->String.toLowerCase,
@@ -51,6 +58,8 @@ let entry = (~kind, ~id, ~name, ~moduleId, ~anchor, ~signature, ~deprecated): en
   moduleId,
   anchor,
   signature,
+  summary: plain(Bundle.firstSentence(doc)),
+  docLower: doc->String.toLowerCase,
   deprecated,
 }
 
@@ -65,6 +74,7 @@ let build = (bundle: Bundle.bundle): index => {
         ~moduleId=topId,
         ~anchor=m.anchor,
         ~signature="",
+        ~doc=m.doc,
         ~deprecated=m.deprecated->Option.isSome,
       ),
     )
@@ -77,6 +87,7 @@ let build = (bundle: Bundle.bundle): index => {
           ~moduleId=topId,
           ~anchor=item.anchor,
           ~signature=item.signature,
+          ~doc=item.doc,
           ~deprecated=item.deprecated->Option.isSome,
         ),
       )
@@ -88,7 +99,29 @@ let build = (bundle: Bundle.bundle): index => {
   out
 }
 
-/* Ranking tiers, see docs/design.md section 4. */
+/* A query is text plus an optional kind filter written as a prefix:
+   `type:`, `value:` or `module:` (or `t:`, `v:`, `m:`). */
+type query = {text: string, kind: option<kind>}
+
+let parseQuery = (raw: string): query => {
+  let q = raw->String.trim->String.toLowerCase
+  let prefixes = [
+    ("type:", Type),
+    ("t:", Type),
+    ("value:", Value),
+    ("v:", Value),
+    ("module:", Module),
+    ("m:", Module),
+  ]
+  switch prefixes->Array.find(((p, _)) => q->String.startsWith(p)) {
+  | Some((p, kind)) => {text: q->String.slice(~start=String.length(p))->String.trim, kind: Some(kind)}
+  | None => {text: q, kind: None}
+  }
+}
+
+/* Ranking tiers, see docs/design.md section 4. A query of several
+   words that matches no tier as a whole still matches when every word
+   appears in the path, the signature or the docstring. */
 let score = (e: entry, q: string): int => {
   let base = if e.lower == q {
     100
@@ -102,18 +135,26 @@ let score = (e: entry, q: string): int => {
     30
   } else if e.sigLower->String.includes(q) {
     10
+  } else if e.docLower->String.includes(q) {
+    5
   } else {
-    0
+    let words = q->String.split(" ")->Array.filter(w => w != "")
+    Array.length(words) > 1 &&
+      words->Array.every(w =>
+        e.idLower->String.includes(w) || e.sigLower->String.includes(w) || e.docLower->String.includes(w)
+      )
+      ? 3
+      : 0
   }
   if base == 0 {
     0
   } else if e.deprecated {
-    base - 20
+    /* Below every live match of the same tier, never out of the list. */
+    Math.Int.max(1, base - 20)
   } else {
     base
   }
 }
-
 type hit = {entry: entry, score: int}
 
 let compareHits = (a: hit, b: hit): Ordering.t =>
@@ -125,18 +166,80 @@ let compareHits = (a: hit, b: hit): Ordering.t =>
     String.compare(a.entry.id, b.entry.id)
   }
 
-let search = (index: index, query: string, ~limit: int=50): array<entry> => {
-  let q = query->String.trim->String.toLowerCase
-  if q == "" {
+/* Every match, best first. A bare kind filter (`type:`) lists every
+   entry of that kind. */
+let rank = (index: index, raw: string): array<entry> => {
+  let {text, kind} = parseQuery(raw)
+  let ofKind = (e: entry) =>
+    switch kind {
+    | Some(k) => e.kind == k
+    | None => true
+    }
+  if text == "" && kind == None {
     []
   } else {
     index
-    ->Array.filterMap(e => {
-      let s = score(e, q)
-      s > 0 ? Some({entry: e, score: s}) : None
-    })
+    ->Array.filterMap(e =>
+      if !ofKind(e) {
+        None
+      } else if text == "" {
+        Some({entry: e, score: e.deprecated ? 1 : 2})
+      } else {
+        let s = score(e, text)
+        s > 0 ? Some({entry: e, score: s}) : None
+      }
+    )
     ->Array.toSorted(compareHits)
-    ->Array.slice(~start=0, ~end=limit)
     ->Array.map(h => h.entry)
+  }
+}
+
+let search = (index: index, query: string, ~limit: int=50): array<entry> =>
+  rank(index, query)->Array.slice(~start=0, ~end=limit)
+
+/* The name split into runs that do and do not match the query, for
+   highlighting: the matched substring, or the initials that matched. */
+type segment = {text: string, matched: bool}
+
+let highlight = (name: string, raw: string): array<segment> => {
+  let q = parseQuery(raw).text
+  let lower = name->String.toLowerCase
+  let piece = (start, end_, matched) => {text: name->String.slice(~start, ~end=end_), matched}
+  let keep = segments => segments->Array.filter(s => s.text != "")
+  if q == "" {
+    [{text: name, matched: false}]
+  } else {
+    switch lower->String.indexOf(q) {
+    | -1 if initials(name)->String.startsWith(q) =>
+      /* Mark the capitals and post-underscore letters that spelled q. */
+      let marks = []
+      let left = ref(String.length(q))
+      let afterSep = ref(true)
+      name
+      ->String.split("")
+      ->Array.forEach(ch => {
+        let isInitial =
+          ch != "_" && (afterSep.contents || (ch->String.toUpperCase == ch && ch->String.toLowerCase != ch))
+        afterSep := ch == "_"
+        if isInitial && left.contents > 0 {
+          left := left.contents - 1
+          marks->Array.push({text: ch, matched: true})
+        } else {
+          marks->Array.push({text: ch, matched: false})
+        }
+      })
+      /* Merge neighbours with the same state. */
+      marks->Array.reduce([], (acc: array<segment>, s) =>
+        switch acc->Array.at(-1) {
+        | Some(last) if last.matched == s.matched =>
+          acc->Array.slice(~start=0, ~end=-1)->Array.concat([{...last, text: last.text ++ s.text}])
+        | _ => acc->Array.concat([s])
+        }
+      )
+    | -1 => [{text: name, matched: false}]
+    | i =>
+      let end_ = i + String.length(q)
+      keep([piece(0, i, false), piece(i, end_, true), piece(end_, String.length(name), false)])
+    }
   }
 }

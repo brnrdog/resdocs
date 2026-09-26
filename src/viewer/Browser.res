@@ -2,6 +2,8 @@
    Browser because Dom is the compiler-provided module. */
 
 @get external key: Dom.event => string = "key"
+@get external ctrlKey: Dom.event => bool = "ctrlKey"
+@get external metaKey: Dom.event => bool = "metaKey"
 @send external preventDefault: Dom.event => unit = "preventDefault"
 @get external target: Dom.event => Dom.eventTarget = "target"
 @get external targetValue: Dom.eventTarget => string = "value"

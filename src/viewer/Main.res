@@ -42,6 +42,23 @@ Effect.run(() => {
   None
 })
 
+/* Recently viewed: the module page, or the item or submodule its hash
+   names. Only once the bundle is in, so ids can be checked. */
+Effect.run(() => {
+  switch Signal.get(Store.currentModule) {
+  | Some(m) =>
+    let hash = Signal.get(Router.location()).hash
+    let anchor = Store.decodeURIComponent(hash->String.slice(~start=1))
+    let id =
+      anchor == ""
+        ? m.id
+        : Signal.peek(Store.idByAnchor)->Dict.get(m.id ++ "#" ++ anchor)->Option.getOr(m.id)
+    Store.visit(id)
+  | None => ()
+  }
+  None
+})
+
 /* The CLI pre-renders every page into #app, so the page reads before
    any script runs. The live app replaces that markup once the bundle
    is in, keeping the reader's scroll position. Without pre-rendered

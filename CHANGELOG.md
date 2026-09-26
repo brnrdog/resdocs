@@ -7,6 +7,18 @@ version is picked.
 
 ## Unreleased
 
+- Search: matches are highlighted, results show the first sentence of
+  the docstring, docstrings are searched (below names and signatures),
+  several words can match across path, signature and docs, and
+  `type:`, `value:` or `module:` narrows to one kind. The dropdown
+  shows how many matched, a keyboard legend, and a hint when nothing
+  does; hovering moves the selection; Ctrl/Cmd+K focuses the box as
+  well as `/`; Escape clears, then closes. On narrow screens the
+  dropdown spans the viewport.
+- Recently viewed: the pages and items a reader opens are kept per
+  site in local storage and listed in the sidebar and, while the
+  query is empty, in the search dropdown, with a Clear button.
+
 - Using the Action more than once in a job (several packages, then
   `hub`) no longer breaks the later uses: from a branch, the second
   use took the first one's build output for a release and reinstalled
