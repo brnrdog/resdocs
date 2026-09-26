@@ -67,16 +67,22 @@ runs:
       with:
         node-version: ${{ inputs.node-version }}
 
-    # A release tag (brnrdog/resdocs@v0.1) carries the compiled CLI and
-    # the built viewer, so only runtime dependencies are installed. A
-    # branch (@main) has neither and is built here, which is slower.
+    # A release tag (brnrdog/resdocs@v0.1) carries the compiled CLI, the
+    # built viewer and dist/RELEASE, so only runtime dependencies are
+    # installed. A branch (@main) is installed in full and built, which
+    # is slower. A second use of the Action in the same job finds that
+    # install and keeps it: build output alone does not mean a release,
+    # and reinstalling without dev dependencies would remove the
+    # compiler a branch install relies on.
     - name: Install resdocs
       shell: bash
       env:
         RESDOCS_ACTION_PATH: ${{ github.action_path }}
       run: |
         cd "$RESDOCS_ACTION_PATH"
-        if [ -f src/cli/Cli.res.mjs ] && [ -f dist/viewer/index.html ]; then
+        if [ -d node_modules ] && [ -f src/cli/Cli.res.mjs ] && [ -f dist/viewer/index.html ]; then
+          echo "resdocs is already installed"
+        elif [ -f dist/RELEASE ]; then
           npm ci --omit=dev --ignore-scripts
         else
           npm ci
