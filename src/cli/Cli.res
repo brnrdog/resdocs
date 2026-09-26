@@ -138,6 +138,15 @@ let withConfigFile = (opts: options, projectDir: string): options => {
   }
 }
 
+/* The base ends up inside index.html, in attributes and an inline
+   script, so it is limited to characters that need no escaping. */
+let checkBase = (base: option<string>): result<unit, string> =>
+  switch base {
+  | Some(b) if b->String.match(/^[A-Za-z0-9._~\/-]*$/)->Option.isNone =>
+    Error("--base may only contain letters, digits and . _ ~ / -, got " ++ b)
+  | _ => Ok()
+  }
+
 let normalizeBase = (base: string): string => {
   let b = base->String.startsWith("/") ? base : "/" ++ base
   b->String.endsWith("/") ? b : b ++ "/"
@@ -212,7 +221,7 @@ let writeSite = (~out: string, ~base: string, ~title: string): result<unit, stri
     let html =
       Node.readFileSync(index)
       ->String.replaceAll("/__RESDOCS_BASE__/", base)
-      ->String.replaceAll("__RESDOCS_TITLE__", title)
+      ->String.replaceAll("__RESDOCS_TITLE__", Hub.escape(title))
     Node.writeFileSync(index, html)
     /* GitHub Pages serves 404.html for unknown paths: deep links load. */
     Node.writeFileSync(Node.join([out, "404.html"]), html)
@@ -223,7 +232,7 @@ let writeSite = (~out: string, ~base: string, ~title: string): result<unit, stri
 let build = async (opts: options): int => {
   let projectDir = Node.resolve(Node.cwd(), opts.project)
   let opts = withConfigFile(opts, projectDir)
-  switch Project.load(projectDir) {
+  switch checkBase(opts.base)->Result.flatMap(() => Project.load(projectDir)) {
   | Error(e) => fail(e)
   | Ok(project) =>
     switch await Tools.locate(projectDir) {
@@ -315,9 +324,11 @@ let build = async (opts: options): int => {
 
 let writeIndex = (opts: options): int => {
   let root = Node.resolve(Node.cwd(), opts.out)
-  if !Node.existsSync(root) {
+  switch checkBase(opts.base) {
+  | Error(e) => fail(e)
+  | Ok() if !Node.existsSync(root) =>
     fail("no such directory: " ++ opts.out)
-  } else {
+  | Ok() =>
     let count = Hub.write(
       ~root,
       ~title=opts.title->Option.getOr("ReScript API docs"),
