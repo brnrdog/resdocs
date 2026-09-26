@@ -11,8 +11,6 @@ let locate = async (projectDir: string): result<t, string> =>
     Ok({bins, projectDir})
   }
 
-let isBuilt = (projectDir: string): bool => Node.existsSync(Node.join([projectDir, "lib", "bs"]))
-
 let build = (tools: t): result<unit, string> => {
   let result = Node.run(tools.bins.rescript, ["build"], ~cwd=tools.projectDir)
   switch result.status->Nullable.toOption {
