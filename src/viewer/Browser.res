@@ -20,6 +20,11 @@ external addDocumentListener: (string, Dom.event => unit) => unit = "addEventLis
 @val @scope("document")
 external removeDocumentListener: (string, Dom.event => unit) => unit = "removeEventListener"
 
+@send external hasChildNodes: Dom.element => bool = "hasChildNodes"
+@set external setInnerHTML: (Dom.element, string) => unit = "innerHTML"
+@val @scope("window") external scrollY: float = "scrollY"
+@val @scope("window") external scrollTo: (float, float) => unit = "scrollTo"
+
 type scrollOptions = {block: string}
 @send external scrollIntoView: (Dom.element, scrollOptions) => unit = "scrollIntoView"
 @send external focus: Dom.element => unit = "focus"
@@ -37,6 +42,10 @@ type response
 @send external text: response => promise<string> = "text"
 @get external ok: response => bool = "ok"
 @get external status: response => int = "status"
+
+/* False while the CLI pre-renders pages in Node, where effects run
+   too; effects that touch the DOM check it first. */
+let isBrowser: bool = %raw(`typeof document !== "undefined"`)
 
 @val @scope("globalThis") external rawBase: Nullable.t<string> = "__RESDOCS_BASE__"
 

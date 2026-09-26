@@ -69,21 +69,25 @@ let globalShortcut = (evt: Dom.event) =>
 
 @xote.component
 let make = () => {
-  Effect.run(() => {
-    Browser.addDocumentListener("keydown", globalShortcut)
-    Some(() => Browser.removeDocumentListener("keydown", globalShortcut))
-  })
+  Effect.run(() =>
+    if Browser.isBrowser {
+      Browser.addDocumentListener("keydown", globalShortcut)
+      Some(() => Browser.removeDocumentListener("keydown", globalShortcut))
+    } else {
+      None
+    }
+  )
   /* Keep the keyboard selection visible inside the scrolling list. */
   Effect.run(() => {
     switch Signal.get(Store.selectedId) {
-    | Some(_) =>
+    | Some(_) if Browser.isBrowser =>
       Browser.requestAnimationFrame(() =>
         switch Browser.querySelector(".result[aria-selected=\"true\"]")->Nullable.toOption {
         | Some(el) => el->Browser.scrollIntoView({block: "nearest"})
         | None => ()
         }
       )
-    | None => ()
+    | _ => ()
     }
     None
   })

@@ -119,8 +119,14 @@ let index = Computed.make(() => Signal.get(bundle)->Option.mapOr([], Search.buil
 
 /* --------------------------------------------------------------- routing */
 
+/* Pre-rendered module pages are directories (module/X/index.html), and
+   a static host redirects /module/X to /module/X/, so a trailing slash
+   names the same page. */
+let trimSlash = (p: string): string =>
+  String.length(p) > 1 && p->String.endsWith("/") ? p->String.slice(~start=0, ~end=-1) : p
+
 let pathname = Computed.make(
-  () => Signal.get(Router.location()).pathname,
+  () => Signal.get(Router.location()).pathname->trimSlash,
   ~name="pathname",
   ~equals=(a, b) => a == b,
 )

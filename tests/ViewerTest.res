@@ -158,6 +158,23 @@ let suite = Suite.async(
         Assert.isFalse(html->String.includes("href=\"/module/Probe#type-string")),
       ])
     }),
+    Test.async("pages pre-render with their content, links and not-found state", async () => {
+      let bundle = bundleWith(
+        Refs.apply([Normalize.ofDoc(Docgen.parse(NodeFs.readFixture("probe.json")))]),
+      )
+      let home = Prerender.render(bundle, ~pathname="/")
+      let page = Prerender.render(bundle, ~pathname="/module/Probe")
+      let slash = Prerender.render(bundle, ~pathname="/module/Probe/")
+      let missing = Prerender.render(bundle, ~pathname="/module/Nope")
+      Assert.combineResults([
+        Assert.contains(home, "href=\"/module/Probe\""),
+        Assert.contains(page, "id=\"value-run\""),
+        Assert.contains(page, "<a class=\"ref\" href=\"/module/Probe#type-conf\">conf</a>"),
+        Assert.contains(page, "aria-current=\"page\""),
+        Assert.equal(slash, page),
+        Assert.contains(missing, "No such module."),
+      ])
+    }),
     Test.async("highlighter covers strings, comments, attributes and numbers", async () => {
       let html = mountNode(View.fragment(Highlight.highlight("@deprecated(\"x\") let n = 42 // c")))->innerHTML
       DomTesting.cleanup()

@@ -47,5 +47,8 @@ type bins = {tools: string, rescript: string}
 @module("./helpers.mjs") external rescriptBins: string => promise<bins> = "rescriptBins"
 @module("./helpers.mjs")
 external parseDoc: string => array<Doc.node> = "parseDoc"
+@module("./helpers.mjs")
+external prerender: (Bundle.bundle, ~base: string, array<string>) => promise<array<string>> =
+  "prerender"
 @module("./helpers.mjs") external copyDir: (string, string) => unit = "copyDir"
 @module("./helpers.mjs") external nowIso: unit => string = "nowIso"
