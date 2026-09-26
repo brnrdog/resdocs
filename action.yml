@@ -64,14 +64,20 @@ runs:
       with:
         node-version: ${{ inputs.node-version }}
 
+    # A release tag (brnrdog/resdocs@v0.1) carries the compiled CLI and
+    # the built viewer, so only runtime dependencies are installed. A
+    # branch (@main) has neither and is built here, which is slower.
     - name: Install resdocs
       shell: bash
       env:
         RESDOCS_ACTION_PATH: ${{ github.action_path }}
       run: |
         cd "$RESDOCS_ACTION_PATH"
-        npm ci
-        npm run build
+        if [ -f src/cli/Cli.res.mjs ] && [ -f dist/viewer/index.html ]; then
+          npm ci --omit=dev --ignore-scripts
+        else
+          npm ci
+        fi
 
     - name: Install project dependencies
       if: inputs.command == 'build'

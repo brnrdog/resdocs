@@ -1,0 +1,121 @@
+# Cuts a release from main. Bump "version" in package.json and add a
+# matching "## <version>" section to CHANGELOG.md first, then run this
+# workflow by hand. See "Releasing" in README.md.
+#
+# The tag points at a release commit, off main, that also carries the
+# compiled CLI (src/**/*.res.mjs) and the built viewer (dist/viewer),
+# so `uses: brnrdog/resdocs@v0.1` and `npx github:brnrdog/resdocs#v0.1.0`
+# need no ReScript or Vite build.
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      npm:
+        description: Also publish to npm (needs the NPM_TOKEN secret)
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          registry-url: https://registry.npmjs.org
+
+      - name: Read the version and check it is new
+        id: version
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::package.json version $version is not x.y.z"
+            exit 1
+          fi
+          if git rev-parse -q --verify "refs/tags/v$version" >/dev/null; then
+            echo "::error::v$version is already tagged; bump package.json first"
+            exit 1
+          fi
+          major=${version%%.*}
+          rest=${version#*.}
+          minor=${rest%%.*}
+          # Before 1.0 a minor bump may break, so 0.x floats per minor.
+          if [ "$major" = "0" ]; then floating="v0.$minor"; else floating="v$major"; fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "floating=$floating" >> "$GITHUB_OUTPUT"
+
+      - name: Extract release notes from CHANGELOG.md
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          awk -v v="$VERSION" '
+            $0 ~ "^## " { if (found) exit; found = ($2 == v) ; next }
+            found { print }
+          ' CHANGELOG.md > "$RUNNER_TEMP/notes.md"
+          if ! grep -q '[^[:space:]]' "$RUNNER_TEMP/notes.md"; then
+            echo "::error::CHANGELOG.md has no \"## $VERSION\" section"
+            exit 1
+          fi
+          cat "$RUNNER_TEMP/notes.md"
+
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+
+      - name: Commit the build output and tag it
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout --detach
+          git add -f dist/viewer $(git ls-files --others --ignored --exclude-standard src | grep '\.res\.mjs$')
+          git commit -q -m "Release v$VERSION"
+          git tag -a "v$VERSION" -m "v$VERSION"
+
+      - name: Check the tagged tree runs without a build
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          dir="$RUNNER_TEMP/tagged"
+          mkdir "$dir"
+          git archive "v$VERSION" | tar -x -C "$dir"
+          cd "$dir"
+          npm ci --omit=dev --ignore-scripts
+          node bin/resdocs.mjs --help
+
+      - name: Push the tags
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          FLOATING: ${{ steps.version.outputs.floating }}
+        run: |
+          git tag -f -a "$FLOATING" -m "$FLOATING, currently v$VERSION"
+          git push origin "v$VERSION"
+          git push -f origin "refs/tags/$FLOATING"
+
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: gh release create "v$VERSION" --verify-tag --title "v$VERSION" --notes-file "$RUNNER_TEMP/notes.md"
+
+      - name: Publish to npm
+        if: inputs.npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --provenance --access public --ignore-scripts
