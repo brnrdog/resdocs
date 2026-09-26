@@ -299,3 +299,8 @@ already lists them.
 - Search covers one package at a time. The index page links packages
   but does not search across them.
 - No versioned docs and no server rendering.
+
+## Contributing and license
+
+See `CONTRIBUTING.md`; security issues go through `SECURITY.md`.
+resdocs is MIT licensed, see `LICENSE`.

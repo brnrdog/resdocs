@@ -18,6 +18,14 @@
     "zekr": "^2.1.0"
   },
   "description": "HexDocs-style documentation site generator for ReScript packages",
+  "keywords": [
+    "rescript",
+    "documentation",
+    "api-docs",
+    "docgen",
+    "github-action"
+  ],
+  "author": "Bernardo Gurgel",
   "license": "MIT",
   "scripts": {
     "res:build": "rescript build",
@@ -47,6 +55,10 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/brnrdog/resdocs.git"
+  },
+  "homepage": "https://github.com/brnrdog/resdocs#readme",
+  "bugs": {
+    "url": "https://github.com/brnrdog/resdocs/issues"
   },
   "engines": {
     "node": ">=20.11"
