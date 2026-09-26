@@ -115,6 +115,16 @@ let decode = (text: string): result<bundle, string> =>
 let stringify = (bundle: bundle): string =>
   JSON.stringifyAny(bundle)->Option.getOr("{}")
 
+/* The first sentence of a docstring's first line: a module's summary
+   on the package page and in its page's meta description. */
+let firstSentence = (doc: string): string => {
+  let line = doc->String.split("\n")->Array.get(0)->Option.getOr("")
+  switch line->String.indexOf(". ") {
+  | -1 => line
+  | i => line->String.slice(~start=0, ~end=i + 1)
+  }
+}
+
 /* Every module in the bundle, depth first, parents before children. */
 let allModules = (bundle: bundle): array<module_> => {
   let out = []

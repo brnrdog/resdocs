@@ -216,28 +216,77 @@ let fail = (message: string): int => {
   1
 }
 
-let writeSite = (~out: string, ~base: string, ~title: string): result<unit, string> => {
+/* One pre-rendered page of the site. */
+type page = {path: string, file: string, title: string, description: string}
+
+let plainText = (text: string): string =>
+  text->String.replaceAll("`", "")->String.replaceAll("*", "")->String.trim
+
+/* The home page, one page per top level module (nested modules are
+   sections of their parent's page), and the page for unknown paths. */
+let pagesOf = (bundle: Bundle.bundle): array<page> => {
+  let summary = bundle.description != ""
+    ? bundle.description
+    : `API documentation for ${bundle.package}.`
+  let home = {path: "/", file: "index.html", title: bundle.title, description: summary}
+  let modules = bundle.modules->Array.map((m): page => {
+    path: "/module/" ++ m.id,
+    file: Node.join(["module", m.id, "index.html"]),
+    title: `${m.id} - ${bundle.title}`,
+    description: switch plainText(Bundle.firstSentence(m.doc)) {
+    | "" => `API reference for ${m.id} in ${bundle.package}.`
+    | sentence => sentence
+    },
+  })
+  /* GitHub Pages serves 404.html, with a 404 status, for any path
+     that has no file. */
+  let notFound = {
+    path: "/404",
+    file: "404.html",
+    title: `Page not found - ${bundle.title}`,
+    description: summary,
+  }
+  [home]->Array.concat(modules)->Array.concat([notFound])
+}
+
+let writeSite = async (~out: string, ~base: string, bundle: Bundle.bundle): result<
+  int,
+  string,
+> => {
   let viewer = Node.join([Node.packageRoot, "dist", "viewer"])
   if !Node.existsSync(Node.join([viewer, "index.html"])) {
     Error("viewer not built at " ++ viewer ++ ", run `npm run build` in resdocs")
   } else {
     Node.copyDir(viewer, out)
     Node.writeFileSync(Node.join([out, "logo.svg"]), Hub.logoFile)
-    let index = Node.join([out, "index.html"])
-    let html =
-      Node.readFileSync(index)
-      ->String.replaceAll("/__RESDOCS_BASE__/", base)
-      ->String.replaceAll("__RESDOCS_TITLE__", Hub.escape(title))
-    Node.writeFileSync(index, html)
-    /* GitHub Pages serves 404.html for unknown paths: deep links load. */
-    Node.writeFileSync(Node.join([out, "404.html"]), html)
-    Ok()
+    let template =
+      Node.readFileSync(Node.join([viewer, "index.html"]))->String.replaceAll(
+        "/__RESDOCS_BASE__/",
+        base,
+      )
+    let pages = pagesOf(bundle)
+    let bodies = await Node.prerender(bundle, ~base, pages->Array.map(p => p.path))
+    pages->Array.forEachWithIndex((page, i) => {
+      let body = bodies->Array.getUnsafe(i)
+      let html =
+        template
+        ->String.replaceAll("__RESDOCS_TITLE__", Hub.escape(page.title))
+        ->String.replaceAll("__RESDOCS_DESCRIPTION__", Hub.escape(page.description))
+        /* A function replacement, so `$` in the markup stays literal. */
+        ->String.replaceRegExpBy0Unsafe(/<div id="app"><\/div>/, (~match as _, ~offset as _, ~input as _) =>
+          `<div id="app">${body}</div>`
+        )
+      let file = Node.join([out, page.file])
+      Node.mkdirp(Node.dirname(file))
+      Node.writeFileSync(file, html)
+    })
+    Ok(Array.length(pages))
   }
 }
 
 /* Everything after the tool ran: the bundle and, unless
    --bundle-only, the site around it. */
-let writeOutput = (opts: options, ~project: Project.t, ~projectDir: string, docs): int => {
+let writeOutput = async (opts: options, ~project: Project.t, ~projectDir: string, docs): int => {
   let namespace = docs->Array.get(0)->Option.flatMap(Normalize.namespaceOf)
   let modules = Refs.apply(docs->Array.map(doc => Normalize.ofDoc(doc)))
   let modules = modules->Array.map(parseModule)
@@ -292,9 +341,13 @@ let writeOutput = (opts: options, ~project: Project.t, ~projectDir: string, docs
     if opts.bundleOnly {
       0
     } else {
-      switch writeSite(~out, ~base=normalizeBase(opts.base->Option.getOr("/")), ~title) {
-      | Ok() =>
-        Node.log("resdocs: site written to " ++ Node.relative(Node.cwd(), out))
+      switch await writeSite(~out, ~base=normalizeBase(opts.base->Option.getOr("/")), bundle) {
+      | Ok(count) =>
+        Node.log(
+          `resdocs: site written to ${Node.relative(Node.cwd(), out)} (${Int.toString(
+              count,
+            )} pages)`,
+        )
         0
       | Error(e) => fail(e)
       }
@@ -350,7 +403,7 @@ let build = async (opts: options): int => {
             | Error(_) => None
             }
           )
-          writeOutput(opts, ~project, ~projectDir, docs)
+          await writeOutput(opts, ~project, ~projectDir, docs)
         }
       }
     }

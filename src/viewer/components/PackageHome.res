@@ -4,13 +4,7 @@
 
 open Xote
 
-let firstSentence = (doc: string): string => {
-  let line = doc->String.split("\n")->Array.get(0)->Option.getOr("")
-  switch line->String.indexOf(". ") {
-  | -1 => line
-  | i => line->String.slice(~start=0, ~end=i + 1)
-  }
-}
+let firstSentence = Bundle.firstSentence
 
 let counts = (m: Bundle.module_): string => {
   let rec walk = (m: Bundle.module_, acc) => {

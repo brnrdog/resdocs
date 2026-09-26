@@ -36,10 +36,25 @@ if (failures.length === 0) {
     check(!html.includes(placeholder), `index.html still has ${placeholder}`);
   }
   check(html.includes(`window.__RESDOCS_BASE__ = "${base}"`), `index.html base is not ${base}`);
-  check(read("404.html") === html, "404.html differs from index.html");
   if (title !== undefined) {
     check(html.includes(`<title>${title}</title>`), `index.html title is not ${title}`);
   }
+
+  // Pre-rendered pages: markup inside #app, one page per top module.
+  const rendered = (file, text) => {
+    const page = fs.existsSync(path.join(dir, file)) ? read(file) : null;
+    check(page !== null, `${file} is missing`);
+    if (page !== null) {
+      check(!page.includes('<div id="app"></div>'), `${file} is not pre-rendered`);
+      check(page.includes(text), `${file} does not contain ${text}`);
+    }
+  };
+  rendered("index.html", 'class="package-hero"');
+  for (const m of bundle.modules) {
+    rendered(`module/${m.id}/index.html`, `<title>${m.id} - `);
+  }
+  rendered(`module/${moduleId}/index.html`, 'class="item"');
+  rendered("404.html", "<title>Page not found - ");
 }
 
 if (failures.length > 0) {

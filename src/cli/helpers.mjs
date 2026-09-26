@@ -101,6 +101,15 @@ export function parseDoc(text) {
   return toDoc(tree);
 }
 
+// Render viewer pages to HTML, one per app path. The viewer reads its
+// base when Store loads, so it is set before the first import; one CLI
+// run writes one site, so it never changes afterwards.
+export async function prerender(bundle, base, paths) {
+  globalThis.__RESDOCS_BASE__ = base;
+  const { render } = await import("../viewer/Prerender.res.mjs");
+  return paths.map(pathname => render(bundle, pathname));
+}
+
 export function copyDir(src, dst) {
   fs.cpSync(src, dst, { recursive: true });
 }

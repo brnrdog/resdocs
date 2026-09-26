@@ -100,7 +100,11 @@ Notes on the split:
    decode, normalize (section 3). A file that has a `.resi` sibling
    is documented through the interface automatically.
 5. Write `<out>/resdocs.json` (the bundle) and copy the built viewer
-   next to it, plus `404.html`.
+   next to it.
+6. Pre-render every page with the viewer itself: `Prerender.render`
+   runs `<App />` through `Xote.SSR.renderToString` in Node for `/`,
+   each top level module (`module/<id>/index.html`) and `404.html`,
+   each with its own title and meta description.
 
 Config can also come from `resdocs.config.json` in the project root
 so the Action needs no arguments:
@@ -278,8 +282,18 @@ Nested modules render inside their parent page with their own
 anchors (`#module-For`, `#module-For-value-make`) and also get a
 sidebar entry. Anchors are derived from `anchor` in the bundle. On
 GitHub Pages the site is served from `/<repo>/`, passed as
-`Router.init(~basePath)` and Vite `base`. `404.html` is a copy of
-`index.html` so cold deep links resolve.
+`Router.init(~basePath)` and Vite `base`.
+
+Every page is pre-rendered, so a module page is real HTML with a 200
+status, readable without JavaScript and by crawlers, and an unknown
+path gets `404.html` with a 404 status. In the browser, `Main` sees
+markup in `#app`, fetches the bundle, then replaces that markup with
+a live mount and restores the scroll position; it does not hydrate,
+because the theme toggle can differ from the server render. If the
+bundle cannot load, the pre-rendered page stays. Static hosts
+redirect `/module/X` to `/module/X/`, so the router ignores a
+trailing slash. Effects that touch the DOM check
+`Browser.isBrowser`, since effects also run during pre-rendering.
 
 Source links:
 

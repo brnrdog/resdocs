@@ -7,6 +7,13 @@ version is picked.
 
 ## Unreleased
 
+- Every page is pre-rendered at build time: the home page, one page
+  per top level module (`module/<id>/index.html`) and `404.html`,
+  each with its own title and meta description. Pages read without
+  JavaScript and are indexable, module URLs return 200 instead of
+  going through `404.html`, and unknown paths return a real 404. The
+  live app takes over once the bundle has loaded.
+
 - A build now fails, and writes nothing, when any source file cannot
   be documented or when no source files are left after `--exclude`.
   Before, such files were skipped with a warning and an empty or

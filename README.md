@@ -1,11 +1,11 @@
 # resdocs
 
 An API documentation repository for ReScript packages. A CLI turns
-the output of `rescript-tools doc` into one JSON bundle, a static
-single page app renders it, and a GitHub Action publishes it to
-Pages. One site documents one package; a second command writes an
-index over many of them, so a single deployment can host the docs of
-a whole ecosystem.
+the output of `rescript-tools doc` into one JSON bundle and a static
+site, pre-rendered page by page and then run as a single page app,
+and a GitHub Action publishes it to Pages. One site documents one
+package; a second command writes an index over many of them, so a
+single deployment can host the docs of a whole ecosystem.
 
 The viewer is written in ReScript with
 [xote](https://github.com/brnrdog/xote) and rescript-signals: every
@@ -197,6 +197,13 @@ touch what the DOM owns: the theme attribute, the document title,
 the global `/` shortcut, and scrolling the selection or a deep link
 target into view.
 
+Every page is pre-rendered at build time by the same components,
+through xote's `SSR.renderToString`: the home page, one page per top
+level module and `404.html`, each with its own title and meta
+description. Pages read without JavaScript and are indexable,
+unknown paths get a real 404 status, and in the browser the live app
+takes over once the bundle has loaded.
+
 Rendered docstrings are xote nodes, not injected HTML, and never
 code: the CLI parses Markdown into a tree of elements and text
 (`src/core/Doc.res`), sanitized against an allowlist, and the viewer
@@ -298,7 +305,7 @@ already lists them.
 - `Stdlib` and `Dom` types are not linked.
 - Search covers one package at a time. The index page links packages
   but does not search across them.
-- No versioned docs and no server rendering.
+- No versioned docs.
 
 ## Contributing and license
 
