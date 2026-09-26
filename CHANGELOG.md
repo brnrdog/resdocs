@@ -7,6 +7,20 @@ version is picked.
 
 ## Unreleased
 
+- A build now fails, and writes nothing, when any source file cannot
+  be documented or when no source files are left after `--exclude`.
+  Before, such files were skipped with a warning and an empty or
+  partial site could be deployed.
+- The CLI always compiles the project first (incrementally), so it
+  never documents a stale build.
+- `--strict`, `"strict": true` in `resdocs.config.json` and the
+  Action's `strict` input fail the build on public items without a
+  docstring.
+- The viewer shows why the docs could not load (network or HTTP
+  error, invalid JSON, a bundle from another resdocs version) instead
+  of staying on "Loading documentation...".
+- Depends on the stable xote 7.1.0 instead of a 7.2 beta.
+
 ## 0.1.0
 
 First release.

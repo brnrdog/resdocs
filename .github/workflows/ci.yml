@@ -17,6 +17,15 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm test
+      - name: CLI end to end on the probe fixture
+        run: |
+          node bin/resdocs.mjs build --project fixtures/probe --out probe-site --base /probe/
+          node scripts/check-site.mjs probe-site /probe/ Probe
+          if node bin/resdocs.mjs build --project fixtures/probe --out strict-site --strict; then
+            echo "::error::--strict passed on a project with undocumented items"
+            exit 1
+          fi
+          test ! -e strict-site
       - name: Install Chromium for the benchmark
         run: npx playwright install --with-deps chromium
       - name: Benchmark on the xote bundle
@@ -24,3 +33,33 @@ jobs:
           node bench/bench.mjs | tee bench.md
           echo "## Benchmark" >> "$GITHUB_STEP_SUMMARY"
           cat bench.md >> "$GITHUB_STEP_SUMMARY"
+
+  # The Action from this checkout, on every PR, so a change that breaks
+  # it is caught before it reaches main (docs.yml only runs there).
+  action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Document the probe fixture with the Action
+        uses: ./
+        with:
+          project: fixtures/probe
+          out: hub/probe
+          base: /docs/probe/
+          hub: /docs/
+          title: Probe "docs" <&>
+          deploy: "false"
+
+      - name: Write a hub over it with the Action
+        uses: ./
+        with:
+          command: hub
+          out: hub
+          base: /docs/
+          deploy: "false"
+
+      - name: Check the output
+        run: |
+          node scripts/check-site.mjs hub/probe /docs/probe/ Probe 'Probe &quot;docs&quot; &lt;&amp;&gt;'
+          grep -q 'href="probe/"' hub/index.html

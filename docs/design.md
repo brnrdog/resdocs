@@ -65,7 +65,8 @@ breaks both at compile time.
         HubTest.res          index page rendering
         ViewerTest.res       markdown, signature, highlight in jsdom
         fixtures/            rescript-tools output samples
-      fixtures/probe/        the probe package the fixtures come from
+      fixtures/probe/        the probe package the fixtures come from,
+                             also the end to end project in CI
       bench/
         bench.mjs            Playwright: search latency, page render
         serve.mjs            static server with Pages-style 404
