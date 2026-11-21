@@ -12,10 +12,10 @@
     "xote": "7.1.0"
   },
   "devDependencies": {
-    "playwright": "^1.63.0",
+    "playwright": "^1.65.1",
     "rescript": "^12.3.1",
-    "vite": "^8.3.0",
-    "zekr": "^2.1.0"
+    "vite": "^8.3.8",
+    "zekr": "^2.2.0"
   },
   "description": "HexDocs-style documentation site generator for ReScript packages",
   "keywords": [
